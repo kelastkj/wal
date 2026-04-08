@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Pembinaan - SMKN 2 Marabahan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media print { .no-print { display: none !important; } body { background: white; } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-16 font-sans">
+
+    <!-- Modal Detail Siswa -->
+    <div id="modalDetail" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-end justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b shrink-0">
+                <div>
+                    <h3 id="modalNama" class="font-black text-sm text-gray-800 uppercase"></h3>
+                    <p id="modalSub" class="text-[10px] text-gray-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-gray-400 transition-all">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto no-scrollbar p-4 space-y-2" id="modalBody"></div>
+        </div>
+    </div>
+
+    <header class="bg-white border-b sticky top-0 z-40 px-4 py-3 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center text-gray-500 transition-all">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </a>
+                <div>
+                    <h1 class="font-black text-blue-700 text-base uppercase tracking-tight leading-tight">Laporan Pembinaan</h1>
+                    <p class="text-[10px] text-gray-400">GURU WALI SMKN 2 MARABAHAN</p>
+                </div>
+            </div>
+            <button onclick="window.print()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-[11px] font-bold px-3 py-2 rounded-lg transition-all">
+                <i class="fas fa-print"></i>
+                <span class="hidden sm:inline">Cetak</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 space-y-4">
+
+        <!-- Filter Panel -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border no-print">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <i class="fas fa-filter text-blue-400"></i> Filter Laporan
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Dari Tanggal</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
+                        <input type="date" id="filterFrom" class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-3 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Sampai Tanggal</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
+                        <input type="date" id="filterTo" class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-3 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Guru Wali (Semua)</label>
+                    <div class="relative">
+                        <i class="fas fa-chalkboard-teacher absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
+                        <input type="text" id="filterGuru" placeholder="Semua guru wali..." autocomplete="off"
+                            oninput="showGuruSuggest(); toggleClearGuru()"
+                            onfocus="showGuruSuggest(); toggleClearGuru()"
+                            class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-9 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
+                        <button id="clearGuruBtn" onclick="clearGuruFilter()" title="Hapus"
+                            class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-400 flex items-center justify-center transition-all">
+                            <i class="fas fa-times text-[10px]"></i>
+                        </button>
+                    </div>
+                    <div id="guruSuggest" class="hidden absolute z-30 bg-white border rounded-xl shadow-xl w-full mt-1 overflow-hidden max-h-48 overflow-y-auto no-scrollbar"></div>
+                </div>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <button onclick="loadReport()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-search"></i> Tampilkan Laporan
+                </button>
+                <button onclick="resetFilter()" title="Reset" class="px-4 bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold rounded-xl transition-all text-sm">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <i class="fas fa-spinner fa-spin text-blue-400 text-3xl mb-3"></i>
+            <p class="text-sm text-gray-400 font-bold">Memuat data dari spreadsheet...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-chart-bar text-blue-200 text-3xl"></i>
+            </div>
+            <p class="font-black text-gray-300 text-sm uppercase tracking-widest">Belum Ada Laporan</p>
+            <p class="text-xs text-gray-300 mt-1.5">Pilih rentang tanggal lalu klik Tampilkan Laporan</p>
+        </div>
+
+        <!-- Report -->
+        <div id="reportSection" class="hidden space-y-4">
+
+            <!-- Print Header -->
+            <div class="hidden print:block text-center mb-4">
+                <h1 class="text-xl font-black text-gray-800 uppercase">Laporan Pembinaan Guru Wali</h1>
+                <p class="text-sm text-gray-500">SMKN 2 Marabahan</p>
+                <p id="printPeriode" class="text-sm font-bold text-gray-600 mt-1"></p>
+            </div>
+
+            <!-- Info bar -->
+            <div class="flex items-center justify-between flex-wrap gap-2 no-print">
+                <p id="periodeLabel" class="text-xs text-gray-500 font-bold"></p>
+                <div class="flex gap-2">
+                    <span id="badgeSiswa" class="text-[10px] bg-blue-50 text-blue-600 font-black px-3 py-1 rounded-full border border-blue-100"></span>
+                    <span id="badgeRecord" class="text-[10px] bg-gray-100 text-gray-500 font-black px-3 py-1 rounded-full border"></span>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-user-check text-emerald-600"></i>
+                    </div>
+                    <div><p id="statTepat" class="text-2xl font-black text-emerald-700">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold">Tepat Waktu</p></div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-clock text-amber-600"></i>
+                    </div>
+                    <div><p id="statTerlambat" class="text-2xl font-black text-amber-700">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold">Terlambat</p></div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-user-times text-red-600"></i>
+                    </div>
+                    <div><p id="statAlpa" class="text-2xl font-black text-red-700">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold">Alpa Hadir</p></div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-mosque text-purple-600"></i>
+                    </div>
+                    <div><p id="statAlpaSholat" class="text-2xl font-black text-purple-700">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold">Alpa Sholat</p></div>
+                </div>
+            </div>
+
+            <!-- Hint -->
+            <p class="text-[10px] text-gray-400 text-center no-print">
+                <i class="fas fa-hand-pointer mr-1 text-blue-300"></i>
+                Ketuk nama siswa untuk melihat riwayat lengkap per tanggal
+            </p>
+
+            <!-- Cari Siswa -->
+            <div class="relative no-print">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                <input type="text" id="tableSearch" oninput="filterTable()" placeholder="Cari nama siswa, kelas, atau guru wali..."
+                    class="w-full bg-white border rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-gray-600 outline-none focus:border-blue-400 transition-all shadow-sm">
+            </div>
+
+            <!-- Tabel Rekap Per Siswa -->
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                <div class="px-4 py-3 border-b flex items-center gap-2">
+                    <i class="fas fa-users text-blue-400 text-sm"></i>
+                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Rekap Per Siswa</span>
+                    <span class="text-[9px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-bold ml-1">1 baris = 1 siswa</span>
+                </div>
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <!-- Baris pertama: kelompok kolom -->
+                            <tr class="text-[9px] font-black uppercase tracking-widest border-b">
+                                <th class="p-2 text-center w-7 bg-gray-50 text-gray-300 border-r" rowspan="2">#</th>
+                                <th class="p-3 text-left min-w-[180px] sticky left-0 bg-gray-50 z-10 border-r" rowspan="2">Siswa &amp; Guru Wali</th>
+                                <th colspan="3" class="px-3 py-2 text-center text-blue-700 bg-blue-50 border-r border-b border-blue-100">
+                                    <i class="fas fa-door-open text-[9px] mr-1"></i>KEHADIRAN
+                                </th>
+                                <th colspan="2" class="px-3 py-2 text-center text-purple-700 bg-purple-50 border-r border-b border-purple-100">
+                                    <i class="fas fa-mosque text-[9px] mr-1"></i>SHOLAT — Alpa
+                                </th>
+                                <th class="p-2 text-center bg-gray-50 text-gray-300" rowspan="2">Total<br><span class="normal-case font-normal text-[8px]">Record</span></th>
+                            </tr>
+                            <!-- Baris kedua: sub-kolom -->
+                            <tr class="text-[9px] font-black uppercase tracking-widest border-b">
+                                <th class="px-3 py-2 text-center text-emerald-600 bg-blue-50/60">Hadir<br><span class="normal-case font-normal text-[8px] text-gray-400">(T)</span></th>
+                                <th class="px-3 py-2 text-center text-amber-500 bg-blue-50/60">Lambat<br><span class="normal-case font-normal text-[8px] text-gray-400">(L)</span></th>
+                                <th class="px-3 py-2 text-center text-red-500 bg-blue-50/60 border-r border-blue-100">Alpa<br><span class="normal-case font-normal text-[8px] text-gray-400">(A)</span></th>
+                                <th class="px-3 py-2 text-center text-purple-600 bg-purple-50/60">Zuhur</th>
+                                <th class="px-3 py-2 text-center text-purple-600 bg-purple-50/60 border-r border-purple-100">Ashar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="siswaTableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+                <div id="noResult" class="hidden p-10 text-center">
+                    <i class="fas fa-search text-3xl text-gray-200 mb-2 block"></i>
+                    <p class="text-xs text-gray-300">Tidak ada siswa yang cocok</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxmLhmcE4di_21eVPAUVQ7M8f0f_cbpJHDGY-2nEE-SbJgnEHA6uMgS-tW5e-QFMIdH/exec';
+
+        // Parse tanggal dari berbagai format (YYYY-MM-DD, atau format lain dari GAS)
+        // withWeekday=true → tampilkan nama hari
+        function fmtDate(str, withWeekday) {
+            if (!str) return '-';
+            // Coba parse sebagai YYYY-MM-DD terlebih dulu (paling aman)
+            const m = String(str).match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (m) {
+                const d = new Date(+m[1], +m[2]-1, +m[3]);
+                return d.toLocaleDateString('id-ID', withWeekday
+                    ? {weekday:'long', day:'numeric', month:'long', year:'numeric'}
+                    : {day:'numeric', month:'long', year:'numeric'});
+            }
+            // Fallback: coba parse langsung
+            const d = new Date(str);
+            if (isNaN(d)) return str; // tampilkan apa adanya jika benar-benar tidak bisa parse
+            return d.toLocaleDateString('id-ID', withWeekday
+                ? {weekday:'long', day:'numeric', month:'long', year:'numeric'}
+                : {day:'numeric', month:'long', year:'numeric'});
+        }
+        let allData = [];
+        let siswaMap = {};
+        let guruList = [];
+
+        // Muat daftar guru dari file lokal (cepat, tanpa tunggu API)
+        fetch('data_siswa.json')
+            .then(r => r.json())
+            .then(json => { guruList = Object.keys(json).sort(); })
+            .catch(() => {});
+
+        const today    = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('filterFrom').value = firstDay.toISOString().slice(0, 10);
+        document.getElementById('filterTo').value   = today.toISOString().slice(0, 10);
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#filterGuru') && !e.target.closest('#guruSuggest') && !e.target.closest('#clearGuruBtn'))
+                document.getElementById('guruSuggest').classList.add('hidden');
+        });
+
+        function showGuruSuggest() {
+            const q   = document.getElementById('filterGuru').value.toLowerCase();
+            const box = document.getElementById('guruSuggest');
+            const list = guruList.filter(g => g.toLowerCase().includes(q));
+            if (!list.length && q.length === 0) {
+                // tampilkan semua jika kosong
+                const all = guruList;
+                if (!all.length) { box.classList.add('hidden'); return; }
+                box.innerHTML = all.map(g => guruItem(g)).join('');
+                box.classList.remove('hidden');
+                return;
+            }
+            if (!list.length) { box.classList.add('hidden'); return; }
+            box.innerHTML = list.map(g => guruItem(g)).join('');
+            box.classList.remove('hidden');
+        }
+
+        function guruItem(g) {
+            const safe = g.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            return `<div onclick="pickGuru('${safe}')" class="px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b last:border-0 transition-all">
+                <i class="fas fa-user text-blue-300 mr-2 text-xs"></i>${g}
+            </div>`;
+        }
+
+        function pickGuru(name) {
+            document.getElementById('filterGuru').value = name;
+            document.getElementById('guruSuggest').classList.add('hidden');
+            toggleClearGuru();
+        }
+
+        function clearGuruFilter() {
+            document.getElementById('filterGuru').value = '';
+            toggleClearGuru();
+            showGuruSuggest();
+            document.getElementById('filterGuru').focus();
+        }
+
+        function toggleClearGuru() {
+            const hasVal = document.getElementById('filterGuru').value.length > 0;
+            document.getElementById('clearGuruBtn').classList.toggle('hidden', !hasVal);
+        }
+
+        function resetFilter() {
+            document.getElementById('filterFrom').value = firstDay.toISOString().slice(0, 10);
+            document.getElementById('filterTo').value   = today.toISOString().slice(0, 10);
+            document.getElementById('filterGuru').value = '';
+        }
+
+        function loadReport() {
+            const from = document.getElementById('filterFrom').value;
+            const to   = document.getElementById('filterTo').value;
+            const guru = document.getElementById('filterGuru').value.trim();
+            if (!from || !to) { alert('Pilih rentang tanggal terlebih dahulu.'); return; }
+
+            ['emptyState','reportSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            const ls = document.getElementById('loadingState');
+            ls.classList.remove('hidden'); ls.classList.add('flex');
+
+            let url = `${API_URL}?action=getReport&from=${from}&to=${to}`;
+            if (guru) url += `&guru=${encodeURIComponent(guru)}`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(res => {
+                    ls.classList.add('hidden'); ls.classList.remove('flex');
+                    if (res.status === 'success') {
+                        allData  = res.data;
+                        renderReport(from, to, guru);
+                    } else {
+                        document.getElementById('emptyState').classList.remove('hidden');
+                        alert('Gagal memuat data dari spreadsheet.');
+                    }
+                })
+                .catch(err => {
+                    ls.classList.add('hidden'); ls.classList.remove('flex');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    alert('Terjadi kesalahan koneksi.');
+                    console.error(err);
+                });
+        }
+
+        function badge(val) {
+            const map = {
+                T:'bg-emerald-100 text-emerald-700', H:'bg-emerald-100 text-emerald-700',
+                L:'bg-amber-100 text-amber-700',     S:'bg-amber-100 text-amber-700',
+                I:'bg-blue-100 text-blue-700',       A:'bg-red-100 text-red-700',
+                Haid:'bg-pink-100 text-pink-700',    '-':'bg-gray-100 text-gray-300'
+            };
+            const cls = map[val] || 'bg-gray-100 text-gray-400';
+            return `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-black ${cls}">${val||'-'}</span>`;
+        }
+
+        function numBadge(n, color) {
+            if (n === 0) return `<span class="text-gray-300 text-xs font-bold">0</span>`;
+            const cls = {
+                green: 'bg-emerald-100 text-emerald-700',
+                amber: 'bg-amber-100 text-amber-700',
+                red:   'bg-red-100 text-red-700',
+            }[color] || 'bg-gray-100 text-gray-500';
+            return `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-black ${cls}">${n}</span>`;
+        }
+
+        function renderReport(from, to, guru) {
+            const data = allData;
+            const fmt  = d => fmtDate(d, false);
+            const p    = `Periode: ${fmt(from)} s/d ${fmt(to)}${guru ? ' - ' + guru : ''}`;
+            document.getElementById('periodeLabel').textContent = p;
+            document.getElementById('printPeriode').textContent = p;
+
+            document.getElementById('statTepat').textContent      = data.filter(r=>r.absen==='T').length;
+            document.getElementById('statTerlambat').textContent  = data.filter(r=>r.absen==='L').length;
+            document.getElementById('statAlpa').textContent       = data.filter(r=>r.absen==='A').length;
+            document.getElementById('statAlpaSholat').textContent = data.filter(r=>r.zuhur==='A'||r.ashar==='A').length;
+
+            siswaMap = {};
+            data.forEach(r => {
+                const key = (r.nisn || r.nama) + '|' + r.kelas;
+                if (!siswaMap[key]) siswaMap[key] = {
+                    nama:r.nama, nisn:r.nisn, kelas:r.kelas, guru:r.guru,
+                    T:0, L:0, A_absen:0, A_zuhur:0, A_ashar:0, total:0, records:[]
+                };
+                const s = siswaMap[key];
+                if (r.absen==='T') s.T++;
+                if (r.absen==='L') s.L++;
+                if (r.absen==='A') s.A_absen++;
+                if (r.zuhur==='A') s.A_zuhur++;
+                if (r.ashar==='A') s.A_ashar++;
+                s.total++;
+                s.records.push(r);
+            });
+
+            const list = Object.values(siswaMap).sort((a,b)=>a.nama.localeCompare(b.nama));
+            document.getElementById('badgeSiswa').textContent = list.length + ' Siswa';
+            document.getElementById('badgeRecord').textContent = data.length + ' Record';
+
+            renderSiswaTable(list);
+            document.getElementById('tableSearch').value = '';
+            document.getElementById('reportSection').classList.remove('hidden');
+        }
+
+        function renderSiswaTable(list) {
+            const tbody = document.getElementById('siswaTableBody');
+            document.getElementById('noResult').classList.toggle('hidden', list.length > 0);
+            if (!list.length) { tbody.innerHTML=''; return; }
+            tbody.innerHTML = list.map((s, i) => {
+                const key = encodeURIComponent((s.nisn||s.nama)+'|'+s.kelas);
+                return `<tr class="hover:bg-blue-50/40 transition-colors cursor-pointer siswa-row"
+                    data-search="${(s.nama+s.kelas+s.guru).toLowerCase()}"
+                    data-key="${key}" onclick="openDetail(this)">
+                    <td class="p-3 text-center text-[10px] text-gray-300 font-bold">${i+1}</td>
+                    <td class="p-3 sticky left-0 bg-white border-r shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                        <div class="font-black text-[11px] text-gray-800 uppercase leading-tight">${s.nama}</div>
+                        <div class="text-[9px] text-gray-400 mt-0.5">${s.nisn} &middot; <span class="text-blue-500 font-bold">${s.kelas}</span></div>
+                        <div class="text-[9px] text-gray-400 mt-0.5 flex items-center gap-1 truncate max-w-[180px]">
+                            <i class="fas fa-chalkboard-teacher text-[8px] shrink-0"></i>${s.guru}
+                        </div>
+                    </td>
+                    <td class="p-3 text-center">${numBadge(s.T,'green')}</td>
+                    <td class="p-3 text-center">${numBadge(s.L,'amber')}</td>
+                    <td class="p-3 text-center">${numBadge(s.A_absen,'red')}</td>
+                    <td class="p-3 text-center">${numBadge(s.A_zuhur,'red')}</td>
+                    <td class="p-3 text-center">${numBadge(s.A_ashar,'red')}</td>
+                    <td class="p-3 text-center text-[10px] text-gray-400 font-bold">${s.total}x</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterTable() {
+            const q = document.getElementById('tableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('.siswa-row');
+            let vis = 0;
+            rows.forEach(r => {
+                const match = r.dataset.search.includes(q);
+                r.classList.toggle('hidden', !match);
+                if (match) vis++;
+            });
+            document.getElementById('noResult').classList.toggle('hidden', vis > 0);
+        }
+
+        function openDetail(row) {
+            const key   = decodeURIComponent(row.dataset.key);
+            const siswa = Object.values(siswaMap).find(s => (s.nisn||s.nama)+'|'+s.kelas === key);
+            if (!siswa) return;
+            document.getElementById('modalNama').textContent = siswa.nama;
+            document.getElementById('modalSub').textContent  = siswa.nisn + ' - ' + siswa.kelas + ' - ' + siswa.guru;
+
+            // Ringkasan statistik di header modal
+            const summary = `
+                <div class="grid grid-cols-5 gap-1.5 mb-3 pb-3 border-b">
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2 text-center">
+                        <p class="text-lg font-black text-emerald-700">${siswa.T}</p>
+                        <p class="text-[8px] text-emerald-500 font-bold leading-tight mt-0.5">Hadir</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-2 text-center">
+                        <p class="text-lg font-black text-amber-700">${siswa.L}</p>
+                        <p class="text-[8px] text-amber-500 font-bold leading-tight mt-0.5">Terlambat</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-2 text-center">
+                        <p class="text-lg font-black text-red-700">${siswa.A_absen}</p>
+                        <p class="text-[8px] text-red-500 font-bold leading-tight mt-0.5">Alpa Hadir</p>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-2 text-center">
+                        <p class="text-lg font-black text-purple-700">${siswa.A_zuhur}</p>
+                        <p class="text-[8px] text-purple-500 font-bold leading-tight mt-0.5">Alpa Zuhur</p>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-2 text-center">
+                        <p class="text-lg font-black text-purple-700">${siswa.A_ashar}</p>
+                        <p class="text-[8px] text-purple-500 font-bold leading-tight mt-0.5">Alpa Ashar</p>
+                    </div>
+                </div>
+                <p class="text-[9px] text-gray-300 font-bold uppercase tracking-widest mb-2">Riwayat ${siswa.total} Record</p>`;
+
+            const sorted = [...siswa.records].sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+            document.getElementById('modalBody').innerHTML = summary + sorted.map(r => {
+                const tgl = fmtDate(r.tanggal, true);
+                const extras = [
+                    r.mingguan && r.mingguan!=='-' ? `<div class="flex items-center justify-between"><span class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5"><i class="fas fa-running text-[9px] w-3"></i>Mingguan</span>${badge(r.mingguan)}</div>` : '',
+                    r.tambahan && r.tambahan!=='-' ? `<div class="flex items-center justify-between"><span class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5"><i class="fas fa-star text-[9px] w-3"></i>Tambahan</span>${badge(r.tambahan)}</div>` : ''
+                ].filter(Boolean).join('');
+                return `<div class="bg-gray-50 rounded-xl p-3.5 border">
+                    <p class="text-[10px] font-black text-blue-600 mb-3 flex items-center gap-1.5">
+                        <i class="fas fa-calendar text-blue-400"></i>${tgl}
+                    </p>
+                    <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5"><i class="fas fa-user-check text-[9px] w-3"></i>Absen</span>${badge(r.absen)}
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5"><i class="fas fa-mosque text-[9px] w-3"></i>Zuhur</span>${badge(r.zuhur)}
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5"><i class="fas fa-mosque text-[9px] w-3"></i>Ashar</span>${badge(r.ashar)}
+                        </div>
+                        ${extras}
+                    </div>
+                </div>`;
+            }).join('');
+
+            const m = document.getElementById('modalDetail');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeModal() {
+            const m = document.getElementById('modalDetail');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        document.getElementById('modalDetail').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "GALANG SAYFUL ISLAM, S.Pd": {
+    "kelas": "X BR",
+    "siswa": [
+      {"nama": "AHMAD FAISAL FIRDAUS", "nisn": "0104880946"},
+      {"nama": "AHMAD RIFA'I", "nisn": "0095442682"},
+      {"nama": "ALIFIA", "nisn": "0107073912"},
+      {"nama": "ANISA", "nisn": "3097518917"},
+      {"nama": "AULIA RIZKIYAH", "nisn": "3091753028"},
+      {"nama": "DAHLIYANA", "nisn": "0102495918"},
+      {"nama": "DHIRA KHOIRYYAH", "nisn": "0095147963"},
+      {"nama": "HAIRUNNISA", "nisn": "0091645701"},
+      {"nama": "JAMILAH", "nisn": "0101204416"},
+      {"nama": "JULIA SYA'BAN", "nisn": "3104667168"}
+    ]
+  },
+  "AULIA RAUDHATUL JANNAH, S.Pd": {
+    "kelas": "X TKJ",
+    "siswa": [
+      {"nama": "AHMAT RAFII", "nisn": "0101781873"},
+      {"nama": "AURA NADIRA KASIH", "nisn": "3093970500"},
+      {"nama": "CAHYA DELINA PURWANINGSIH", "nisn": "0098905597"},
+      {"nama": "DINDA TRIHAP SARI", "nisn": "3102900007"},
+      {"nama": "GALANG SURYA MUKTI", "nisn": "0094958703"},
+      {"nama": "GHINA HATNIPAH", "nisn": "3093349934"},
+      {"nama": "HAYATUN NAFIZAH", "nisn": "0101886111"},
+      {"nama": "HILALIAH", "nisn": "0102602585"},
+      {"nama": "IHSAN NAFARIN", "nisn": "0095553829"}
+    ]
+  },
+  "HAIRULLAH, S.Pd": {
+    "kelas": "X DKV",
+    "siswa": [
+      {"nama": "ABDI ANOR", "nisn": "0092699795"},
+      {"nama": "ABDURAHMAN", "nisn": "0104240766"},
+      {"nama": "AHMAD FAQIH", "nisn": "0105723651"},
+      {"nama": "AKHMAD MAULANA", "nisn": "0082601270"},
+      {"nama": "AMELIA WIDI", "nisn": "0098870212"},
+      {"nama": "AULIA RAHMA", "nisn": "0098898294"},
+      {"nama": "BAIQ DESI RATNASARI", "nisn": "0086390677"},
+      {"nama": "DEWI NOR AINI", "nisn": "0105439718"}
+    ]
+  },
+  "ENY WIDYANINGSIH, S.Pd": {
+    "kelas": "X TAB",
+    "siswa": [
+      {"nama": "ABDURRAHMAN WAHID", "nisn": "0108356747"},
+      {"nama": "ABI KHAIR", "nisn": "0108341623"},
+      {"nama": "AHMAD NOUVAL", "nisn": "0109626231"},
+      {"nama": "AHMAD SAPUTRA", "nisn": "0095112962"},
+      {"nama": "ALDI SYAHREZA", "nisn": "0105482827"},
+      {"nama": "ALFIANNOR", "nisn": "3097080896"},
+      {"nama": "ANANDA NOOR HAFIZAH", "nisn": "0109314155"}
+    ]
+  }
+}
