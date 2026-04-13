@@ -10,6 +10,10 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @media print { .no-print { display: none !important; } body { background: white; } }
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+        }
+        .shake { animation: shake 0.4s ease; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-16 font-sans">
@@ -71,11 +75,13 @@
                     </div>
                 </div>
                 <div class="relative">
-                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Guru Wali (Semua)</label>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">
+                        Guru Wali <span class="text-red-400">*</span>
+                    </label>
                     <div class="relative">
                         <i class="fas fa-chalkboard-teacher absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
-                        <input type="text" id="filterGuru" placeholder="Semua guru wali..." autocomplete="off"
-                            oninput="showGuruSuggest(); toggleClearGuru()"
+                        <input type="text" id="filterGuru" placeholder="Pilih guru wali dulu..." autocomplete="off"
+                            oninput="showGuruSuggest(); toggleClearGuru(); clearGuruWarn()"
                             onfocus="showGuruSuggest(); toggleClearGuru()"
                             class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-9 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
                         <button id="clearGuruBtn" onclick="clearGuruFilter()" title="Hapus"
@@ -84,6 +90,9 @@
                         </button>
                     </div>
                     <div id="guruSuggest" class="hidden absolute z-30 bg-white border rounded-xl shadow-xl w-full mt-1 overflow-hidden max-h-48 overflow-y-auto no-scrollbar"></div>
+                    <p id="guruWarn" class="hidden mt-1.5 text-[10px] text-red-500 font-bold flex items-center gap-1">
+                        <i class="fas fa-exclamation-circle"></i> Pilih guru wali terlebih dahulu
+                    </p>
                 </div>
             </div>
             <div class="mt-3 flex gap-2">
@@ -131,7 +140,7 @@
             </div>
 
             <!-- Stat Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
                     <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
                         <i class="fas fa-user-check text-emerald-600"></i>
@@ -160,6 +169,33 @@
                     <div><p id="statAlpaSholat" class="text-2xl font-black text-purple-700">0</p>
                     <p class="text-[10px] text-gray-400 font-bold">Alpa Sholat</p></div>
                 </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3 sm:col-span-full md:col-span-1">
+                    <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-tint text-pink-500"></i>
+                    </div>
+                    <div><p id="statHaid" class="text-2xl font-black text-pink-600">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold">Siswi Haid</p></div>
+                </div>
+            </div>
+
+            <!-- Rekap Siswi Haid -->
+            <div id="haidPanel" class="hidden bg-white rounded-2xl border border-pink-100 shadow-sm overflow-hidden">
+                <button onclick="toggleHaidPanel()" class="w-full flex items-center justify-between px-4 py-3 border-b border-pink-100 hover:bg-pink-50/40 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-tint text-pink-400 text-sm"></i>
+                        <span class="text-[10px] font-black text-pink-600 uppercase tracking-widest">Rekap Siswi Haid</span>
+                        <span id="haidCount" class="text-[9px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-black border border-pink-200">0 siswi</span>
+                    </div>
+                    <i id="haidChevron" class="fas fa-chevron-down text-pink-300 text-xs transition-transform duration-200"></i>
+                </button>
+                <div id="haidBody" class="hidden">
+                    <!-- grid cards -->
+                    <div id="haidGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-3"></div>
+                    <div id="haidEmpty" class="hidden p-6 text-center">
+                        <i class="fas fa-check-circle text-3xl text-emerald-200 mb-2 block"></i>
+                        <p class="text-xs text-gray-300">Tidak ada catatan haid dalam periode ini</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Hint -->
@@ -167,6 +203,15 @@
                 <i class="fas fa-hand-pointer mr-1 text-blue-300"></i>
                 Ketuk nama siswa untuk melihat riwayat lengkap per tanggal
             </p>
+
+            <!-- Highlight Legend + Sort Hint -->
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 no-print bg-white border rounded-xl px-4 py-2.5">
+                <span class="text-[9px] text-gray-400 font-black uppercase tracking-widest shrink-0">Warna baris:</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-red-100 border border-red-300 rounded-sm shrink-0"></span>Alpa hadir &ge; 2</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-amber-100 border border-amber-300 rounded-sm shrink-0"></span>Terlambat &ge; 3</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-pink-100 border border-pink-300 rounded-sm shrink-0"></span>Haid <i class="fas fa-tint text-pink-400 text-[8px] ml-0.5"></i></span>
+                <span class="ml-auto text-[9px] text-gray-400 italic hidden sm:flex items-center gap-1"><i class="fas fa-sort text-blue-300"></i>Klik header kolom untuk mengurutkan</span>
+            </div>
 
             <!-- Cari Siswa -->
             <div class="relative no-print">
@@ -188,22 +233,46 @@
                             <!-- Baris pertama: kelompok kolom -->
                             <tr class="text-[9px] font-black uppercase tracking-widest border-b">
                                 <th class="p-2 text-center w-7 bg-gray-50 text-gray-300 border-r" rowspan="2">#</th>
-                                <th class="p-3 text-left min-w-[180px] sticky left-0 bg-gray-50 z-10 border-r" rowspan="2">Siswa &amp; Guru Wali</th>
-                                <th colspan="3" class="px-3 py-2 text-center text-blue-700 bg-blue-50 border-r border-b border-blue-100">
+                                <th onclick="setSort('nama')" class="p-3 text-left min-w-[180px] sticky left-0 bg-gray-50 z-10 border-r cursor-pointer hover:bg-blue-50 transition-colors select-none" rowspan="2">
+                                    <span class="flex items-center gap-1">Siswa &amp; Guru Wali <i id="si-nama" class="fas fa-sort-up text-blue-500 text-[8px]"></i></span>
+                                </th>
+                                <th colspan="4" class="px-3 py-2 text-center text-blue-700 bg-blue-50 border-r border-b border-blue-100">
                                     <i class="fas fa-door-open text-[9px] mr-1"></i>KEHADIRAN
                                 </th>
                                 <th colspan="2" class="px-3 py-2 text-center text-purple-700 bg-purple-50 border-r border-b border-purple-100">
                                     <i class="fas fa-mosque text-[9px] mr-1"></i>SHOLAT — Alpa
                                 </th>
-                                <th class="p-2 text-center bg-gray-50 text-gray-300" rowspan="2">Total<br><span class="normal-case font-normal text-[8px]">Record</span></th>
+                                <th onclick="setSort('total')" class="p-2 text-center bg-gray-50 text-gray-400 cursor-pointer hover:bg-blue-50 transition-colors select-none" rowspan="2">
+                                    Total<br><span class="normal-case font-normal text-[8px]">Record</span>
+                                    <i id="si-total" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
                             </tr>
                             <!-- Baris kedua: sub-kolom -->
                             <tr class="text-[9px] font-black uppercase tracking-widest border-b">
-                                <th class="px-3 py-2 text-center text-emerald-600 bg-blue-50/60">Hadir<br><span class="normal-case font-normal text-[8px] text-gray-400">(T)</span></th>
-                                <th class="px-3 py-2 text-center text-amber-500 bg-blue-50/60">Lambat<br><span class="normal-case font-normal text-[8px] text-gray-400">(L)</span></th>
-                                <th class="px-3 py-2 text-center text-red-500 bg-blue-50/60 border-r border-blue-100">Alpa<br><span class="normal-case font-normal text-[8px] text-gray-400">(A)</span></th>
-                                <th class="px-3 py-2 text-center text-purple-600 bg-purple-50/60">Zuhur</th>
-                                <th class="px-3 py-2 text-center text-purple-600 bg-purple-50/60 border-r border-purple-100">Ashar</th>
+                                <th onclick="setSort('T')" class="px-3 py-2 text-center text-emerald-600 bg-blue-50/60 cursor-pointer hover:bg-emerald-50 transition-colors select-none">
+                                    Hadir<br><span class="normal-case font-normal text-[8px] text-gray-400">(T)</span>
+                                    <i id="si-T" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('L')" class="px-3 py-2 text-center text-amber-500 bg-blue-50/60 cursor-pointer hover:bg-amber-50 transition-colors select-none">
+                                    Lambat<br><span class="normal-case font-normal text-[8px] text-gray-400">(L)</span>
+                                    <i id="si-L" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('A')" class="px-3 py-2 text-center text-red-500 bg-blue-50/60 cursor-pointer hover:bg-red-50 transition-colors select-none">
+                                    Alpa<br><span class="normal-case font-normal text-[8px] text-gray-400">(A)</span>
+                                    <i id="si-A" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                <th onclick="setSort('haid')" class="px-3 py-2 text-center text-pink-500 bg-blue-50/60 border-r border-blue-100 cursor-pointer hover:bg-pink-50 transition-colors select-none">
+                                    Haid<br><span class="normal-case font-normal text-[8px] text-gray-400">hari</span>
+                                    <i id="si-haid" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('zuhur')" class="px-3 py-2 text-center text-purple-600 bg-purple-50/60 cursor-pointer hover:bg-purple-50 transition-colors select-none">
+                                    Zuhur
+                                    <i id="si-zuhur" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('ashar')" class="px-3 py-2 text-center text-purple-600 bg-purple-50/60 border-r border-purple-100 cursor-pointer hover:bg-purple-50 transition-colors select-none">
+                                    Ashar
+                                    <i id="si-ashar" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="siswaTableBody" class="divide-y divide-gray-100"></tbody>
@@ -287,6 +356,16 @@
             document.getElementById('filterGuru').value = name;
             document.getElementById('guruSuggest').classList.add('hidden');
             toggleClearGuru();
+            clearGuruWarn();
+        }
+
+        function clearGuruWarn() {
+            const inp = document.getElementById('filterGuru');
+            const warn = document.getElementById('guruWarn');
+            if (inp.value.trim()) {
+                warn.classList.add('hidden');
+                inp.classList.remove('border-red-400', 'bg-red-50');
+            }
         }
 
         function clearGuruFilter() {
@@ -311,6 +390,17 @@
             const from = document.getElementById('filterFrom').value;
             const to   = document.getElementById('filterTo').value;
             const guru = document.getElementById('filterGuru').value.trim();
+
+            // Validasi: guru wajib dipilih
+            if (!guru) {
+                const inp  = document.getElementById('filterGuru');
+                const warn = document.getElementById('guruWarn');
+                inp.classList.add('border-red-400', 'bg-red-50', 'shake');
+                inp.addEventListener('animationend', () => inp.classList.remove('shake'), { once: true });
+                warn.classList.remove('hidden');
+                inp.focus();
+                return;
+            }
             if (!from || !to) { alert('Pilih rentang tanggal terlebih dahulu.'); return; }
 
             ['emptyState','reportSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -340,6 +430,101 @@
                 });
         }
 
+        function renderHaidPanel() {
+            // Hanya tampilkan siswi yang record TERAKHIRNYA masih Haid
+            const siswi = Object.values(siswaMap).filter(s => s.Haid > 0 && s.latestIsHaid)
+                .sort((a, b) => b.lastHaid.localeCompare(a.lastHaid));
+            const panel = document.getElementById('haidPanel');
+            const grid  = document.getElementById('haidGrid');
+            const empty = document.getElementById('haidEmpty');
+            document.getElementById('haidCount').textContent = siswi.length + ' siswi';
+
+            if (!siswi.length) {
+                grid.innerHTML = '';
+                grid.classList.add('hidden');
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                grid.classList.remove('hidden');
+                grid.innerHTML = siswi.map(s => {
+                    const hariKe = s.haidStart
+                        ? Math.floor((new Date() - new Date(s.haidStart)) / 86400000) + 1
+                        : null;
+                    const dayBadge = hariKe !== null
+                        ? `<span class="text-[8px] bg-pink-200 text-pink-900 font-black px-2 py-0.5 rounded-full">Hari ke-${hariKe}</span>`
+                        : '';
+                    return `<div class="bg-pink-50 border border-pink-200 rounded-xl p-3">
+                        <div class="font-black text-[10px] text-gray-800 uppercase leading-tight truncate">${s.nama}</div>
+                        <div class="text-[9px] text-gray-400 mt-0.5">${s.kelas}</div>
+                        <div class="mt-2 flex items-center justify-between gap-1 flex-wrap">
+                            <div class="text-[9px] text-pink-600 font-bold flex items-center gap-1">
+                                <i class="fas fa-tint text-[8px]"></i>Sedang Haid
+                            </div>
+                            ${dayBadge}
+                        </div>
+                        <div class="text-[9px] text-gray-400 mt-1.5 font-bold">
+                            Mulai: <span class="text-pink-700">${fmtDate(s.haidStart, false)}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            panel.classList.remove('hidden');
+            // Auto-buka jika ada siswi haid
+            if (siswi.length > 0) {
+                document.getElementById('haidBody').classList.remove('hidden');
+                document.getElementById('haidChevron').style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleHaidPanel() {
+            const body    = document.getElementById('haidBody');
+            const chevron = document.getElementById('haidChevron');
+            const open    = !body.classList.contains('hidden');
+            body.classList.toggle('hidden', open);
+            chevron.style.transform = open ? '' : 'rotate(180deg)';
+        }
+
+        let sortState = { key: 'nama', dir: 'asc' };
+
+        function getSortedList() {
+            return Object.values(siswaMap).sort((a, b) => {
+                const d = sortState.dir === 'asc' ? 1 : -1;
+                const v = {
+                    nama:  a.nama.localeCompare(b.nama),
+                    T:     a.T - b.T,
+                    L:     a.L - b.L,
+                    A:     a.A_absen - b.A_absen,
+                    zuhur: a.A_zuhur - b.A_zuhur,
+                    ashar: a.A_ashar - b.A_ashar,
+                    haid:  a.Haid - b.Haid,
+                    total: a.total - b.total
+                };
+                return (v[sortState.key] ?? a.nama.localeCompare(b.nama)) * d;
+            });
+        }
+
+        function setSort(key) {
+            if (sortState.key === key) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+            else { sortState.key = key; sortState.dir = key === 'nama' ? 'asc' : 'desc'; }
+            renderSiswaTable(getSortedList());
+            updateSortIcons();
+            filterTable();
+        }
+
+        function updateSortIcons() {
+            ['nama','T','L','A','haid','zuhur','ashar','total'].forEach(k => {
+                const el = document.getElementById('si-' + k);
+                if (!el) return;
+                const isBlock = k !== 'nama';
+                const base = (isBlock ? ' block mt-0.5' : '');
+                if (sortState.key === k) {
+                    el.className = 'fas ' + (sortState.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') + ' text-blue-500 text-[8px]' + base;
+                } else {
+                    el.className = 'fas fa-sort text-gray-300 text-[8px]' + base;
+                }
+            });
+        }
+
         function badge(val) {
             const map = {
                 T:'bg-emerald-100 text-emerald-700', H:'bg-emerald-100 text-emerald-700',
@@ -357,6 +542,7 @@
                 green: 'bg-emerald-100 text-emerald-700',
                 amber: 'bg-amber-100 text-amber-700',
                 red:   'bg-red-100 text-red-700',
+                pink:  'bg-pink-100 text-pink-700',
             }[color] || 'bg-gray-100 text-gray-500';
             return `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-black ${cls}">${n}</span>`;
         }
@@ -372,13 +558,14 @@
             document.getElementById('statTerlambat').textContent  = data.filter(r=>r.absen==='L').length;
             document.getElementById('statAlpa').textContent       = data.filter(r=>r.absen==='A').length;
             document.getElementById('statAlpaSholat').textContent = data.filter(r=>r.zuhur==='A'||r.ashar==='A').length;
+            document.getElementById('statHaid').textContent       = new Set(data.filter(r=>r.zuhur==='Haid'||r.ashar==='Haid').map(r=>(r.nisn||r.nama)+'|'+r.kelas)).size;
 
             siswaMap = {};
             data.forEach(r => {
                 const key = (r.nisn || r.nama) + '|' + r.kelas;
                 if (!siswaMap[key]) siswaMap[key] = {
                     nama:r.nama, nisn:r.nisn, kelas:r.kelas, guru:r.guru,
-                    T:0, L:0, A_absen:0, A_zuhur:0, A_ashar:0, total:0, records:[]
+                    T:0, L:0, A_absen:0, A_zuhur:0, A_ashar:0, Haid:0, lastHaid:'', latestDate:'', latestIsHaid:false, total:0, records:[]
                 };
                 const s = siswaMap[key];
                 if (r.absen==='T') s.T++;
@@ -386,15 +573,42 @@
                 if (r.absen==='A') s.A_absen++;
                 if (r.zuhur==='A') s.A_zuhur++;
                 if (r.ashar==='A') s.A_ashar++;
+                if (r.zuhur==='Haid' || r.ashar==='Haid') {
+                    s.Haid++;
+                    if (!s.lastHaid || r.tanggal > s.lastHaid) s.lastHaid = r.tanggal;
+                }
+                // Track record terbaru untuk menentukan status haid saat ini
+                if (!s.latestDate || r.tanggal > s.latestDate) {
+                    s.latestDate   = r.tanggal;
+                    s.latestIsHaid = (r.zuhur === 'Haid' || r.ashar === 'Haid');
+                }
                 s.total++;
                 s.records.push(r);
             });
 
-            const list = Object.values(siswaMap).sort((a,b)=>a.nama.localeCompare(b.nama));
+            // Hitung haidStart: tanggal pertama pada streak haid terakhir
+            Object.values(siswaMap).forEach(s => {
+                if (!s.latestIsHaid) { s.haidStart = ''; return; }
+                const sorted = [...s.records].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+                let start = s.lastHaid;
+                for (const r of sorted) {
+                    if (r.zuhur === 'Haid' || r.ashar === 'Haid') {
+                        start = r.tanggal; // terus geser ke belakang selama masih haid
+                    } else {
+                        break; // ketemu record normal → streak dimulai setelah ini
+                    }
+                }
+                s.haidStart = start;
+            });
+
+            const list = Object.values(siswaMap);
             document.getElementById('badgeSiswa').textContent = list.length + ' Siswa';
             document.getElementById('badgeRecord').textContent = data.length + ' Record';
 
-            renderSiswaTable(list);
+            sortState = { key: 'nama', dir: 'asc' };
+            renderSiswaTable(getSortedList());
+            updateSortIcons();
+            renderHaidPanel();
             document.getElementById('tableSearch').value = '';
             document.getElementById('reportSection').classList.remove('hidden');
         }
@@ -405,12 +619,21 @@
             if (!list.length) { tbody.innerHTML=''; return; }
             tbody.innerHTML = list.map((s, i) => {
                 const key = encodeURIComponent((s.nisn||s.nama)+'|'+s.kelas);
-                return `<tr class="hover:bg-blue-50/40 transition-colors cursor-pointer siswa-row"
+                const isRed   = s.A_absen >= 2;
+                const isAmber = !isRed && s.L >= 3;
+                const isHaid  = !isRed && !isAmber && s.latestIsHaid;
+                const rowBg   = isRed ? 'bg-red-50 hover:bg-red-100/70' : isAmber ? 'bg-amber-50 hover:bg-amber-100/70' : isHaid ? 'bg-pink-50 hover:bg-pink-100/70' : 'hover:bg-blue-50/40';
+                const stickyBg = isRed ? 'bg-red-50' : isAmber ? 'bg-amber-50' : isHaid ? 'bg-pink-50' : 'bg-white';
+                const flagIcon = isRed
+                    ? ' <i class="fas fa-exclamation-circle text-red-400 text-[9px]" title="Alpa hadir \u2265 2"></i>'
+                    : isAmber ? ' <i class="fas fa-exclamation-triangle text-amber-400 text-[9px]" title="Terlambat \u2265 3"></i>'
+                    : isHaid ? ' <i class="fas fa-tint text-pink-400 text-[9px]" title="Haid"></i>' : '';
+                return `<tr class="${rowBg} transition-colors cursor-pointer siswa-row"
                     data-search="${(s.nama+s.kelas+s.guru).toLowerCase()}"
                     data-key="${key}" onclick="openDetail(this)">
                     <td class="p-3 text-center text-[10px] text-gray-300 font-bold">${i+1}</td>
-                    <td class="p-3 sticky left-0 bg-white border-r shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
-                        <div class="font-black text-[11px] text-gray-800 uppercase leading-tight">${s.nama}</div>
+                    <td class="p-3 sticky left-0 ${stickyBg} border-r shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                        <div class="font-black text-[11px] text-gray-800 uppercase leading-tight">${s.nama}${flagIcon}</div>
                         <div class="text-[9px] text-gray-400 mt-0.5">${s.nisn} &middot; <span class="text-blue-500 font-bold">${s.kelas}</span></div>
                         <div class="text-[9px] text-gray-400 mt-0.5 flex items-center gap-1 truncate max-w-[180px]">
                             <i class="fas fa-chalkboard-teacher text-[8px] shrink-0"></i>${s.guru}
@@ -419,6 +642,7 @@
                     <td class="p-3 text-center">${numBadge(s.T,'green')}</td>
                     <td class="p-3 text-center">${numBadge(s.L,'amber')}</td>
                     <td class="p-3 text-center">${numBadge(s.A_absen,'red')}</td>
+                    <td class="p-3 text-center">${numBadge(s.Haid,'pink')}</td>
                     <td class="p-3 text-center">${numBadge(s.A_zuhur,'red')}</td>
                     <td class="p-3 text-center">${numBadge(s.A_ashar,'red')}</td>
                     <td class="p-3 text-center text-[10px] text-gray-400 font-bold">${s.total}x</td>
@@ -446,7 +670,16 @@
             document.getElementById('modalSub').textContent  = siswa.nisn + ' - ' + siswa.kelas + ' - ' + siswa.guru;
 
             // Ringkasan statistik di header modal
+            const haidInfo = siswa.Haid > 0
+                ? `<div class="flex items-center gap-2 mb-3 pb-3 border-b bg-pink-50 -mx-4 px-4 py-2 rounded">
+                    <i class="fas fa-tint text-pink-400 text-sm"></i>
+                    <span class="text-[10px] text-pink-700 font-black">${siswa.Haid}x Haid dalam periode ini</span>
+                    <span class="ml-auto text-[10px] font-bold ${siswa.latestIsHaid ? 'text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-200' : 'text-gray-400'}">
+                        ${siswa.latestIsHaid ? '&#128293; Sedang Haid' : '&#10003; Sudah Hadir &mdash; ' + fmtDate(siswa.latestDate, false)}
+                    </span>
+                </div>` : '';
             const summary = `
+                ${haidInfo}
                 <div class="grid grid-cols-5 gap-1.5 mb-3 pb-3 border-b">
                     <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2 text-center">
                         <p class="text-lg font-black text-emerald-700">${siswa.T}</p>

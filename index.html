@@ -78,6 +78,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <div id="selectedGuruName" class="font-black text-sm text-blue-800 truncate"></div>
+                    <div id="selectedGuruMeta" class="flex items-center gap-1.5 mt-1 flex-wrap"></div>
                 </div>
                 <span class="shrink-0 text-[9px] bg-blue-600 text-white px-2 py-1 rounded-full font-black uppercase tracking-wide">Terpilih</span>
             </div>
@@ -240,19 +241,21 @@
             const list = document.getElementById('searchList');
             list.innerHTML = "";
             let found = false;
-            for (const guru in dbSiswa) {
+            for (const guru of Object.keys(dbSiswa).sort((a, b) => a.localeCompare(b))) {
                 if (guru.toLowerCase().includes(input)) {
                     found = true;
                     const div = document.createElement('div');
                     div.className = "p-3.5 hover:bg-blue-50 cursor-pointer border-b border-gray-50 flex items-center gap-3 group transition-all";
+                    const uniqueKelasD = [...new Set(dbSiswa[guru].siswa.map(s => s.kelas))];
                     div.innerHTML = `
                         <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 group-hover:bg-blue-200 transition-colors">
                             <i class="fas fa-user text-blue-500 text-[10px]"></i>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <span class="font-bold text-sm text-gray-700 group-hover:text-blue-700 transition-colors block truncate">${guru}</span>
-
+                            <div class="flex flex-wrap gap-1 mt-0.5">${uniqueKelasD.map(k => `<span class="text-[7px] bg-blue-50 text-blue-500 border border-blue-100 px-1.5 py-0.5 rounded-full font-black">${k}</span>`).join('')}</div>
                         </div>
+                        <span class="shrink-0 text-[8px] text-gray-400 font-semibold text-right">${dbSiswa[guru].siswa.length}<span class="block text-[7px] font-normal">siswa</span></span>
                     `;
                     div.onclick = () => selectGuru(guru);
                     list.appendChild(div);
@@ -277,8 +280,14 @@
             info.classList.add('flex');
             document.getElementById('selectedGuruName').textContent = name;
 
+            const uniqueKelas = [...new Set(data.siswa.map(s => s.kelas))];
+            document.getElementById('selectedGuruMeta').innerHTML =
+                `<span class="text-[8px] text-blue-500 font-bold">${data.siswa.length} siswa</span>` +
+                uniqueKelas.map(k => `<span class="text-[7px] bg-white text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-full font-black">${k}</span>`).join('');
+
             document.getElementById('emptyState').classList.add('hidden');
             renderForm();
+            setTimeout(() => document.getElementById('formSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
         }
 
         function clearGuru() {
@@ -336,23 +345,27 @@
             thMingguan.innerHTML = `<i class="fas ${iconMingguan} block mb-0.5"></i>${labelMingguan}`;
             if (isTambahan) thTambahan.classList.remove('hidden');
 
+            const uniqueKelas = [...new Set(dataKelas.siswa.map(s => s.kelas))];
             document.getElementById('bannerGuruName').textContent = `— ${guruKey}`;
-            document.getElementById('bannerJumlahSiswa').textContent = `${dataKelas.siswa.length} Siswa`;
+            document.getElementById('bannerJumlahSiswa').textContent = `${dataKelas.siswa.length} Siswa${uniqueKelas.length > 1 ? ` · ${uniqueKelas.length} Kelas` : ''}`;
 
             let html = "";
             dataKelas.siswa.forEach((siswa, idx) => {
                 html += `
-                <tr class="hover:bg-gray-50 transition-colors">
+                <tr class="hover:bg-blue-50 transition-colors group" data-nama="${siswa.nama}" data-nisn="${siswa.nisn}" data-kelas="${siswa.kelas}">
                     <td class="p-3 text-center text-[10px] text-gray-300 font-bold">${idx + 1}</td>
-                    <td class="p-3 sticky left-0 bg-white font-bold text-[10px] border-r shadow-[2px_0_5px_rgba(0,0,0,0.05)] uppercase leading-tight">
+                    <td class="p-3 sticky left-0 bg-white group-hover:bg-blue-50 font-bold text-[10px] border-r shadow-[2px_0_5px_rgba(0,0,0,0.05)] uppercase leading-tight transition-colors">
                         <div class="text-gray-800 truncate max-w-[140px]">${siswa.nama}</div>
-                        <div class="text-[8px] text-gray-400 font-normal mt-1">${siswa.nisn} | <span class="text-blue-500 font-bold">${siswa.kelas}</span></div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <span class="text-[8px] text-gray-400 font-normal">${siswa.nisn}</span>
+                            <span class="inline-block bg-blue-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full leading-none">${siswa.kelas}</span>
+                        </div>
                     </td>
-                    <td class="p-3 text-center"><button onclick="openModal(this,'absen','${siswa.nama}')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">T</button></td>
-                    <td class="p-3 text-center"><button onclick="openModal(this,'sholat','${siswa.nama}')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
-                    <td class="p-3 text-center"><button onclick="openModal(this,'sholat','${siswa.nama}')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
-                    <td class="p-3 text-center ${labelMingguan === '' ? 'hidden' : ''}"><button onclick="openModal(this,'sholat','${siswa.nama}')" class="w-10 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
-                    <td class="p-3 text-center ${!isTambahan ? 'hidden' : ''}"><button onclick="openModal(this,'sholat','${siswa.nama}')" class="w-10 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
+                    <td class="p-3 text-center"><button onclick="openModal(this,'absen')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">T</button></td>
+                    <td class="p-3 text-center"><button onclick="openModal(this,'sholat')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
+                    <td class="p-3 text-center"><button onclick="openModal(this,'sholat')" class="w-10 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
+                    <td class="p-3 text-center ${labelMingguan === '' ? 'hidden' : ''}"><button onclick="openModal(this,'sholat')" class="w-10 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
+                    <td class="p-3 text-center ${!isTambahan ? 'hidden' : ''}"><button onclick="openModal(this,'sholat')" class="w-10 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 font-bold text-[10px] active:scale-90 transition-all">H</button></td>
                 </tr>`;
             });
 
@@ -361,11 +374,11 @@
             document.getElementById('legendPanel').classList.remove('hidden');
         }
 
-        function openModal(el, type, namaDisplay) {
+        function openModal(el, type) {
             currentTarget = el;
             const modal = document.getElementById('modalStatus');
             const options = document.getElementById('modalOptions');
-            document.getElementById('modalSiswaName').textContent = namaDisplay || 'Ketuk status yang sesuai';
+            document.getElementById('modalSiswaName').textContent = el.closest('tr')?.dataset?.nama || 'Ketuk status yang sesuai';
             options.innerHTML = "";
             config[type].forEach(opt => {
                 options.innerHTML += `
@@ -431,23 +444,19 @@
 
             const rows = document.querySelectorAll('#siswaTableBody tr');
             const allData = [];
+            const isMingguan = !document.getElementById('thMingguan').classList.contains('hidden');
 
             rows.forEach(row => {
                 const cells = row.querySelectorAll('button');
-                const nama = row.querySelector('.text-gray-800').textContent;
-                const nisnKelas = row.querySelector('.text-gray-400').textContent.split('|');
-                const nisn = nisnKelas[0].trim();
-                const kelas = nisnKelas[1].trim();
-
                 allData.push({
-                    nama: nama,
-                    nisn: nisn,
-                    kelas: kelas,
+                    nama: row.dataset.nama,
+                    nisn: row.dataset.nisn,
+                    kelas: row.dataset.kelas,
                     absen: cells[0].innerText,
                     zuhur: cells[1].innerText,
                     ashar: cells[2].innerText,
-                    mingguan: cells[3] ? cells[3].innerText : "-",
-                    tambahan: isTambahan ? (cells[4] ? cells[4].innerText : "-") : "-"
+                    mingguan: isMingguan ? cells[3].innerText : "-",
+                    tambahan: isTambahan ? cells[4].innerText : "-"
                 });
             });
 
