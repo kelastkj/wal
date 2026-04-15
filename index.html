@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Pembinaan Guru Wali - SMKN 2 Marabahan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'] } } } }</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -16,7 +20,7 @@
         .toast-out { animation: toastOut 0.4s ease forwards; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-16 font-sans">
+<body class="bg-slate-50 min-h-screen pb-16" style="font-family:'Plus Jakarta Sans',sans-serif">
 
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] pointer-events-none hidden">
@@ -26,21 +30,27 @@
         </div>
     </div>
 
-    <header class="bg-white border-b sticky top-0 z-40 px-4 py-3 shadow-sm">
+    <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
         <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
-            <h1 class="font-black text-blue-700 tracking-tighter text-lg italic uppercase leading-tight shrink-0">
-                FORM PEMBINAAN
-                <span class="text-gray-400 font-light block text-[10px] not-italic tracking-normal">GURU WALI SMKN 2 MARABAHAN</span>
+            <h1 class="font-extrabold text-blue-700 tracking-tight text-lg leading-tight shrink-0">
+                Form Pembinaan
+                <span class="text-slate-400 font-medium block text-[10px] tracking-widest uppercase">Guru Wali · SMKN 2 Marabahan</span>
             </h1>
-            <a href="laporan.html" class="flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-gray-500 text-[10px] font-black px-3 py-2 rounded-lg transition-all" title="Lihat Laporan">
-                <i class="fas fa-chart-bar text-xs"></i>
-                <span>Laporan</span>
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="dashboard.html" class="flex items-center gap-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 text-gray-500 text-[10px] font-black px-3 py-2 rounded-lg transition-all" title="Dashboard Guru">
+                    <i class="fas fa-th-large text-xs"></i>
+                    <span class="hidden sm:inline">Dashboard</span>
+                </a>
+                <a href="laporan.html" class="flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-gray-500 text-[10px] font-black px-3 py-2 rounded-lg transition-all" title="Lihat Laporan">
+                    <i class="fas fa-chart-bar text-xs"></i>
+                    <span class="hidden sm:inline">Laporan</span>
+                </a>
+            </div>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto p-4">
-        <div class="bg-white rounded-2xl p-5 shadow-sm border mb-5 space-y-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-5 space-y-4">
 
             <!-- Tanggal Pembinaan -->
             <div class="flex items-center gap-2 mb-0.5">
@@ -92,7 +102,7 @@
         </div>
 
         <!-- Empty state -->
-        <div id="emptyState" class="flex flex-col items-center justify-center py-16 text-center">
+        <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center">
             <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
                 <i class="fas fa-chalkboard-teacher text-blue-200 text-3xl"></i>
             </div>

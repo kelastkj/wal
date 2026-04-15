@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Pembinaan - SMKN 2 Marabahan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'] } } } }</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -16,7 +20,7 @@
         .shake { animation: shake 0.4s ease; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-16 font-sans">
+<body class="bg-slate-50 min-h-screen pb-16" style="font-family:'Plus Jakarta Sans',sans-serif">
 
     <!-- Modal Detail Siswa -->
     <div id="modalDetail" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-end justify-center p-4">
@@ -34,15 +38,18 @@
         </div>
     </div>
 
-    <header class="bg-white border-b sticky top-0 z-40 px-4 py-3 shadow-sm no-print">
+    <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
             <div class="flex items-center gap-3">
                 <a href="index.html" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center text-gray-500 transition-all">
                     <i class="fas fa-arrow-left text-xs"></i>
                 </a>
+                <a href="dashboard.html" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 flex items-center justify-center text-gray-500 transition-all" title="Dashboard">
+                    <i class="fas fa-th-large text-xs"></i>
+                </a>
                 <div>
-                    <h1 class="font-black text-blue-700 text-base uppercase tracking-tight leading-tight">Laporan Pembinaan</h1>
-                    <p class="text-[10px] text-gray-400">GURU WALI SMKN 2 MARABAHAN</p>
+                    <h1 class="font-extrabold text-blue-700 text-base tracking-tight leading-tight">Laporan Pembinaan</h1>
+                    <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Guru Wali · SMKN 2 Marabahan</p>
                 </div>
             </div>
             <button onclick="window.print()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-[11px] font-bold px-3 py-2 rounded-lg transition-all">
@@ -322,6 +329,29 @@
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         document.getElementById('filterFrom').value = firstDay.toISOString().slice(0, 10);
         document.getElementById('filterTo').value   = today.toISOString().slice(0, 10);
+
+        // Auto-load jika ada ?guru= di URL (dari dashboard)
+        const urlGuru = new URLSearchParams(window.location.search).get('guru');
+        if (urlGuru) {
+            // Tunggu guruList terisi dulu baru set & load
+            const waitAndLoad = setInterval(() => {
+                if (guruList.length > 0) {
+                    clearInterval(waitAndLoad);
+                    document.getElementById('filterGuru').value = urlGuru;
+                    toggleClearGuru();
+                    loadReport();
+                }
+            }, 100);
+            // Fallback jika guruList tidak terisi dalam 3 detik
+            setTimeout(() => {
+                clearInterval(waitAndLoad);
+                if (!document.getElementById('filterGuru').value) {
+                    document.getElementById('filterGuru').value = urlGuru;
+                    toggleClearGuru();
+                    loadReport();
+                }
+            }, 3000);
+        }
 
         document.addEventListener('click', e => {
             if (!e.target.closest('#filterGuru') && !e.target.closest('#guruSuggest') && !e.target.closest('#clearGuruBtn'))
