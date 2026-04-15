@@ -547,6 +547,11 @@
                 }
             }
 
+            // Jika Zuhur (cells[1]) dipilih Haid → Ashar (cells[2]) otomatis Haid
+            if (cells.length > 0 && currentTarget === cells[1] && k === 'Haid') {
+                if (cells[2]) applyStatus(cells[2], 'sholat', 'Haid');
+            }
+
             // Tandai baris sudah diubah
             if (tr && !tr.dataset.changed) {
                 tr.dataset.changed = '1';
