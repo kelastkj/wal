@@ -33,7 +33,17 @@ try {
             SELECT
                 g.nama          AS guru,
                 MAX(p.tanggal)  AS last_tanggal,
-                COUNT(p.id)     AS total_sesi
+                COUNT(p.id)     AS total_sesi,
+                (
+                    SELECT COUNT(pd2.id)
+                    FROM pembinaan p2
+                    JOIN pembinaan_detail pd2 ON pd2.pembinaan_id = p2.id
+                    WHERE p2.guru_wali_id = g.id
+                      AND (pd2.zuhur = \'Haid\' OR pd2.ashar = \'Haid\')
+                      AND p2.tanggal = (
+                          SELECT MAX(tanggal) FROM pembinaan WHERE guru_wali_id = g.id
+                      )
+                ) AS haid_last
             FROM guru_wali g
             LEFT JOIN pembinaan p ON p.guru_wali_id = g.id
             GROUP BY g.id, g.nama
@@ -46,6 +56,7 @@ try {
                 'guru'         => $r['guru'],
                 'last_tanggal' => $r['last_tanggal'],  // null jika belum pernah input
                 'total_sesi'   => (int) $r['total_sesi'],
+                'haid_last'    => (int) $r['haid_last'],
             ];
         }, $rows);
 
