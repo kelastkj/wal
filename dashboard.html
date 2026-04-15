@@ -242,7 +242,12 @@
             const filter = document.getElementById('filterStatus').value;
             const grid   = document.getElementById('cardGrid');
 
-            const gurus = Object.keys(guruData).sort((a,b) => a.localeCompare(b));
+            const gurus = Object.keys(guruData).sort((a, b) => {
+                const hasA = lastEntry[a] ? 1 : 0;
+                const hasB = lastEntry[b] ? 1 : 0;
+                if (hasB !== hasA) return hasB - hasA; // ada data dulu
+                return a.localeCompare(b, 'id');
+            });
             let visible  = 0;
             let html = '';
 
