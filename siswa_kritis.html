@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siswa Perlu Perhatian - SMKN 2 Marabahan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'] } } } }</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.25s ease forwards; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .print-break { page-break-inside: avoid; }
+        }
+        /* Row highlight */
+        tr.row-alpa   td { background-color: #fef2f2 !important; }
+        tr.row-lambat td { background-color: #fffbeb !important; }
+        tr.row-sholat td { background-color: #faf5ff !important; }
+        tr.row-alpa:hover   td { background-color: #fee2e2 !important; }
+        tr.row-lambat:hover td { background-color: #fef3c7 !important; }
+        tr.row-sholat:hover td { background-color: #f3e8ff !important; }
+        tr.row-normal:hover td { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-20 md:pb-0" style="font-family:'Plus Jakarta Sans',sans-serif">
+
+    <!-- Modal Detail Siswa -->
+    <div id="modalDetail" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-end justify-center p-4 pb-[calc(1rem+4rem)] md:pb-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b shrink-0">
+                <div>
+                    <h3 id="modalNama" class="font-black text-sm text-gray-800 uppercase"></h3>
+                    <p id="modalSub" class="text-[10px] text-gray-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-gray-400 transition-all">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto no-scrollbar p-4 space-y-2" id="modalBody"></div>
+            <div class="px-5 py-3 border-t shrink-0">
+                <a id="modalLaporanLink" href="#" target="_blank"
+                    class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm py-2.5 rounded-xl transition-all active:scale-95">
+                    <i class="fas fa-chart-bar text-xs"></i> Buka Laporan Lengkap Guru Ini
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto flex items-center gap-3">
+            <div class="shrink-0">
+                <h1 class="font-extrabold text-red-600 text-base tracking-tight leading-tight">Siswa Perlu Perhatian</h1>
+                <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Semua Kelas · SMKN 2 Marabahan</p>
+            </div>
+            <div class="flex-1 flex justify-end items-center gap-1">
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all"><i class="fas fa-edit"></i> Form</a>
+                    <a href="dashboard.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all"><i class="fas fa-th-large"></i> Dashboard</a>
+                    <a href="laporan.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all"><i class="fas fa-chart-bar"></i> Laporan</a>
+                    <a href="siswa_kritis.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black rounded-lg bg-red-500 text-white"><i class="fas fa-exclamation-triangle"></i> Kritis</a>
+                    <a href="rekap_guru.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><i class="fas fa-chalkboard-teacher"></i> Rekap Guru</a>
+                </nav>
+                <div class="hidden md:block w-px h-4 bg-slate-200 mx-1"></div>
+                <span id="totalBadge" class="hidden text-[10px] bg-red-50 text-red-600 font-black px-3 py-1 rounded-full border border-red-100"></span>
+                <button onclick="window.print()" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all" title="Cetak">
+                    <i class="fas fa-print text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 space-y-4">
+
+        <!-- Print Header -->
+        <div class="hidden print:block text-center mb-4">
+            <h1 class="text-xl font-black text-gray-800 uppercase">Daftar Siswa Perlu Perhatian</h1>
+            <p class="text-sm text-gray-500">SMKN 2 Marabahan</p>
+            <p id="printPeriode" class="text-sm font-bold text-gray-600 mt-1"></p>
+        </div>
+
+        <!-- Filter & Threshold Panel -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border no-print">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <i class="fas fa-sliders-h text-red-400"></i> Periode &amp; Ambang Batas
+            </p>
+            <!-- Tanggal -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Dari Tanggal</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
+                        <input type="date" id="filterFrom" class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-3 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Sampai Tanggal</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs pointer-events-none"></i>
+                        <input type="date" id="filterTo" class="w-full bg-gray-50 rounded-xl border-2 border-transparent pl-9 pr-3 py-2.5 text-sm font-bold text-gray-700 focus:border-blue-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+            <!-- Threshold -->
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">
+                        <span class="inline-block w-2.5 h-2.5 bg-red-400 rounded-sm mr-1"></span>Min. Alpa
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="minAlpa" value="3" min="1" max="99"
+                            class="w-full bg-gray-50 rounded-xl border-2 border-transparent px-3 py-2.5 text-sm font-black text-red-600 text-center focus:border-red-400 focus:bg-white outline-none transition-all">
+                        <span class="text-[10px] text-gray-400 font-bold shrink-0">kali</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">
+                        <span class="inline-block w-2.5 h-2.5 bg-amber-400 rounded-sm mr-1"></span>Min. Terlambat
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="minLambat" value="5" min="1" max="99"
+                            class="w-full bg-gray-50 rounded-xl border-2 border-transparent px-3 py-2.5 text-sm font-black text-amber-600 text-center focus:border-amber-400 focus:bg-white outline-none transition-all">
+                        <span class="text-[10px] text-gray-400 font-bold shrink-0">kali</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">
+                        <span class="inline-block w-2.5 h-2.5 bg-purple-400 rounded-sm mr-1"></span>Min. Alpa Sholat
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="minSholat" value="5" min="1" max="99"
+                            class="w-full bg-gray-50 rounded-xl border-2 border-transparent px-3 py-2.5 text-sm font-black text-purple-600 text-center focus:border-purple-400 focus:bg-white outline-none transition-all">
+                        <span class="text-[10px] text-gray-400 font-bold shrink-0">kali</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="loadKritis()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-search"></i> Tampilkan
+                </button>
+                <button onclick="resetFilter()" title="Reset ke default" class="px-4 bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold rounded-xl transition-all text-sm">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <i class="fas fa-spinner fa-spin text-red-400 text-3xl mb-3"></i>
+            <p class="text-sm text-gray-400 font-bold">Menganalisis data seluruh siswa...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-check-circle text-emerald-300 text-3xl"></i>
+            </div>
+            <p class="font-black text-gray-300 text-sm uppercase tracking-widest">Tidak Ada Siswa Kritis</p>
+            <p class="text-xs text-gray-300 mt-1.5">Semua siswa memenuhi batas ambang yang ditentukan</p>
+        </div>
+
+        <!-- Result Section -->
+        <div id="resultSection" class="hidden space-y-4">
+
+            <!-- Info bar -->
+            <div class="flex items-center justify-between flex-wrap gap-2 no-print">
+                <p id="periodeLabel" class="text-xs text-gray-500 font-bold"></p>
+                <div class="flex gap-2 flex-wrap">
+                    <span id="badgeAlpa"   class="text-[10px] bg-red-50 text-red-600 font-black px-3 py-1 rounded-full border border-red-100"></span>
+                    <span id="badgeLambat" class="text-[10px] bg-amber-50 text-amber-600 font-black px-3 py-1 rounded-full border border-amber-100"></span>
+                    <span id="badgeSholat" class="text-[10px] bg-purple-50 text-purple-600 font-black px-3 py-1 rounded-full border border-purple-100"></span>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-user-slash text-red-600"></i>
+                    </div>
+                    <div>
+                        <p id="statKritis" class="text-2xl font-black text-red-700">0</p>
+                        <p class="text-[10px] text-gray-400 font-bold leading-tight">Total Kritis</p>
+                    </div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-door-closed text-red-400"></i>
+                    </div>
+                    <div>
+                        <p id="statAlpaCount" class="text-2xl font-black text-red-500">0</p>
+                        <p class="text-[10px] text-gray-400 font-bold leading-tight">Alpa Hadir</p>
+                    </div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-clock text-amber-600"></i>
+                    </div>
+                    <div>
+                        <p id="statLambatCount" class="text-2xl font-black text-amber-700">0</p>
+                        <p class="text-[10px] text-gray-400 font-bold leading-tight">Terlambat</p>
+                    </div>
+                </div>
+                <div class="bg-white border rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-mosque text-purple-600"></i>
+                    </div>
+                    <div>
+                        <p id="statSholatCount" class="text-2xl font-black text-purple-700">0</p>
+                        <p class="text-[10px] text-gray-400 font-bold leading-tight">Alpa Sholat</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 no-print bg-white border rounded-xl px-4 py-2.5">
+                <span class="text-[9px] text-gray-400 font-black uppercase tracking-widest shrink-0">Warna baris:</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-red-100 border border-red-300 rounded-sm shrink-0"></span>Alpa &ge; batas</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-amber-100 border border-amber-300 rounded-sm shrink-0"></span>Terlambat &ge; batas</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-gray-600"><span class="w-3.5 h-3.5 bg-purple-100 border border-purple-300 rounded-sm shrink-0"></span>Alpa Sholat &ge; batas</span>
+                <span class="ml-auto text-[9px] text-gray-400 italic hidden sm:flex items-center gap-1">
+                    <i class="fas fa-hand-pointer text-blue-300"></i>Ketuk baris untuk detail &amp; link laporan
+                </span>
+            </div>
+
+            <!-- Search -->
+            <div class="relative no-print">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                <input type="text" id="tableSearch" oninput="filterTable()" placeholder="Cari nama, kelas, atau guru wali..."
+                    class="w-full bg-white border rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-gray-600 outline-none focus:border-red-400 transition-all shadow-sm">
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden print-break">
+                <div class="px-4 py-3 border-b flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-sm"></i>
+                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Daftar Siswa</span>
+                    <span id="countBadge" class="text-[9px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-bold ml-1"></span>
+                    <span class="ml-auto text-[9px] text-gray-400 italic hidden sm:flex items-center gap-1"><i class="fas fa-sort text-blue-300"></i>Klik header untuk urutkan</span>
+                </div>
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="text-[9px] font-black uppercase tracking-widest border-b bg-gray-50">
+                                <th class="p-2 text-center w-7 text-gray-300 border-r">#</th>
+                                <th onclick="setSort('nama')" class="p-3 text-left min-w-[180px] sticky left-0 bg-gray-50 z-10 border-r cursor-pointer hover:bg-blue-50 transition-colors select-none">
+                                    <span class="flex items-center gap-1">Siswa &amp; Guru Wali <i id="si-nama" class="fas fa-sort-up text-blue-500 text-[8px]"></i></span>
+                                </th>
+                                <th onclick="setSort('total_alpa')" class="px-3 py-2 text-center text-red-600 cursor-pointer hover:bg-red-50 transition-colors select-none min-w-[60px]">
+                                    Alpa<br><i id="si-total_alpa" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('total_lambat')" class="px-3 py-2 text-center text-amber-600 cursor-pointer hover:bg-amber-50 transition-colors select-none min-w-[70px]">
+                                    Lambat<br><i id="si-total_lambat" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('total_sakit')" class="px-3 py-2 text-center text-orange-500 cursor-pointer hover:bg-orange-50 transition-colors select-none min-w-[60px]">
+                                    Sakit<br><i id="si-total_sakit" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('total_izin')" class="px-3 py-2 text-center text-blue-500 cursor-pointer hover:bg-blue-50 transition-colors select-none min-w-[55px]">
+                                    Izin<br><i id="si-total_izin" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                                <th onclick="setSort('alpa_sholat')" class="px-3 py-2 text-center text-purple-600 cursor-pointer hover:bg-purple-50 transition-colors select-none min-w-[70px]">
+                                    Alpa<br><span class="normal-case font-normal text-[8px] text-gray-400">Sholat</span><br><i id="si-alpa_sholat" class="fas fa-sort text-gray-300 text-[8px] block"></i>
+                                </th>
+                                <th onclick="setSort('total_record')" class="px-3 py-2 text-center text-gray-400 cursor-pointer hover:bg-blue-50 transition-colors select-none min-w-[55px]">
+                                    Record<br><i id="si-total_record" class="fas fa-sort text-gray-300 text-[8px] block mt-0.5"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="kritisTableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+                <div id="noResult" class="hidden p-10 text-center">
+                    <i class="fas fa-search text-3xl text-gray-200 mb-2 block"></i>
+                    <p class="text-xs text-gray-300">Tidak ditemukan</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'https://smkn1telagasari.sch.id/form-gw/api/report.php';
+
+        let allRows    = [];   // raw dari API
+        let filtered   = [];   // setelah search
+        let sortState  = { key: 'total_alpa', dir: 'desc' };
+        let thresholds = { alpa: 3, lambat: 5, sholat: 5 };
+
+        // ── Inisialisasi tanggal default (bulan ini) ──────────────
+        const today    = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('filterFrom').value = firstDay.toISOString().slice(0, 10);
+        document.getElementById('filterTo').value   = today.toISOString().slice(0, 10);
+
+        // Auto-load saat buka halaman
+        window.addEventListener('DOMContentLoaded', loadKritis);
+
+        // ── Load data ─────────────────────────────────────────────
+        function loadKritis() {
+            const from     = document.getElementById('filterFrom').value;
+            const to       = document.getElementById('filterTo').value;
+            const minAlpa  = parseInt(document.getElementById('minAlpa').value)  || 3;
+            const minLambat= parseInt(document.getElementById('minLambat').value)|| 5;
+            const minSholat= parseInt(document.getElementById('minSholat').value)|| 5;
+
+            thresholds = { alpa: minAlpa, lambat: minLambat, sholat: minSholat };
+
+            ['emptyState','resultSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            const ls = document.getElementById('loadingState');
+            ls.classList.remove('hidden'); ls.classList.add('flex');
+            document.getElementById('totalBadge').classList.add('hidden');
+
+            let url = `${API_URL}?kritis=1`;
+            if (from) url += `&from=${from}`;
+            if (to)   url += `&to=${to}`;
+            url += `&min_alpa=${minAlpa}&min_lambat=${minLambat}&min_sholat=${minSholat}`;
+
+            fetch(url)
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(res => {
+                    ls.classList.add('hidden'); ls.classList.remove('flex');
+                    if (res.status === 'success') {
+                        allRows = res.data;
+                        renderResult(from, to);
+                    } else {
+                        document.getElementById('emptyState').classList.remove('hidden');
+                        document.getElementById('emptyState').classList.add('flex');
+                    }
+                })
+                .catch(err => {
+                    ls.classList.add('hidden'); ls.classList.remove('flex');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    document.getElementById('emptyState').classList.add('flex');
+                    console.error(err);
+                });
+        }
+
+        // ── Render utama ──────────────────────────────────────────
+        function renderResult(from, to) {
+            if (!allRows.length) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('emptyState').classList.add('flex');
+                return;
+            }
+
+            // Hitung stats
+            let cntAlpa = 0, cntLambat = 0, cntSholat = 0;
+            allRows.forEach(r => {
+                const alpaSholat = r.alpa_zuhur + r.alpa_ashar;
+                if (r.total_alpa   >= thresholds.alpa)   cntAlpa++;
+                if (r.total_lambat >= thresholds.lambat) cntLambat++;
+                if (alpaSholat     >= thresholds.sholat) cntSholat++;
+            });
+
+            document.getElementById('statKritis').textContent    = allRows.length;
+            document.getElementById('statAlpaCount').textContent  = cntAlpa;
+            document.getElementById('statLambatCount').textContent= cntLambat;
+            document.getElementById('statSholatCount').textContent= cntSholat;
+
+            const badge = document.getElementById('totalBadge');
+            badge.textContent = allRows.length + ' siswa perlu perhatian';
+            badge.classList.remove('hidden');
+
+            document.getElementById('badgeAlpa').textContent   = cntAlpa   + ' alpa hadir';
+            document.getElementById('badgeLambat').textContent = cntLambat + ' terlambat';
+            document.getElementById('badgeSholat').textContent = cntSholat + ' alpa sholat';
+
+            // Periode label
+            const fmtD = str => { const m = str.match(/(\d{4})-(\d{2})-(\d{2})/); if (!m) return str; return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); };
+            const periodeText = (from && to) ? `${fmtD(from)} – ${fmtD(to)}` : 'Semua waktu';
+            document.getElementById('periodeLabel').textContent = 'Periode: ' + periodeText;
+            document.getElementById('printPeriode').textContent = 'Periode: ' + periodeText;
+
+            document.getElementById('resultSection').classList.remove('hidden');
+            document.getElementById('tableSearch').value = '';
+
+            sortAndRender();
+        }
+
+        // ── Sort & render tabel ───────────────────────────────────
+        function sortAndRender() {
+            filtered = [...allRows].map(r => ({ ...r, alpa_sholat: r.alpa_zuhur + r.alpa_ashar }));
+            filtered.sort((a, b) => {
+                const d = sortState.dir === 'asc' ? 1 : -1;
+                if (sortState.key === 'nama') return a.nama.localeCompare(b.nama, 'id') * d;
+                return ((a[sortState.key] ?? 0) - (b[sortState.key] ?? 0)) * d;
+            });
+
+            const q = (document.getElementById('tableSearch')?.value || '').toLowerCase();
+            const visible = q ? filtered.filter(r =>
+                r.nama.toLowerCase().includes(q) ||
+                r.kelas.toLowerCase().includes(q) ||
+                r.guru.toLowerCase().includes(q)
+            ) : filtered;
+
+            renderTable(visible);
+        }
+
+        function renderTable(rows) {
+            const tbody = document.getElementById('kritisTableBody');
+            document.getElementById('countBadge').textContent = rows.length + ' siswa';
+
+            if (!rows.length) {
+                tbody.innerHTML = '';
+                document.getElementById('noResult').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('noResult').classList.add('hidden');
+
+            tbody.innerHTML = rows.map((r, i) => {
+                const alpaSholat = r.alpa_sholat ?? (r.alpa_zuhur + r.alpa_ashar);
+                // Tentukan warna baris — prioritas: alpa > sholat > lambat
+                let rowClass = 'row-normal';
+                if (r.total_alpa   >= thresholds.alpa)   rowClass = 'row-alpa';
+                else if (alpaSholat >= thresholds.sholat) rowClass = 'row-sholat';
+                else if (r.total_lambat >= thresholds.lambat) rowClass = 'row-lambat';
+
+                const n = (v, cls) => v > 0
+                    ? `<span class="inline-block font-black ${cls}">${v}</span>`
+                    : `<span class="text-gray-300">0</span>`;
+
+                return `<tr class="${rowClass} cursor-pointer transition-colors fade-up" onclick="openModal(${i})" style="animation-delay:${Math.min(i*15,300)}ms">
+                    <td class="p-2 text-center text-[10px] text-gray-300 border-r font-bold">${i+1}</td>
+                    <td class="px-3 py-2.5 sticky left-0 bg-inherit border-r z-10">
+                        <div class="font-black text-[11px] text-gray-800 uppercase leading-tight">${escHtml(r.nama)}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-2">
+                            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-bold">${escHtml(r.kelas)}</span>
+                            <span class="truncate max-w-[120px]">${escHtml(r.guru)}</span>
+                        </div>
+                    </td>
+                    <td class="px-3 py-2.5 text-center">${n(r.total_alpa, 'text-red-600')}</td>
+                    <td class="px-3 py-2.5 text-center">${n(r.total_lambat, 'text-amber-600')}</td>
+                    <td class="px-3 py-2.5 text-center">${n(r.total_sakit, 'text-orange-500')}</td>
+                    <td class="px-3 py-2.5 text-center">${n(r.total_izin, 'text-blue-500')}</td>
+                    <td class="px-3 py-2.5 text-center">${n(alpaSholat, 'text-purple-600')}<br><span class="text-[8px] text-gray-300">${r.alpa_zuhur}Z+${r.alpa_ashar}A</span></td>
+                    <td class="px-3 py-2.5 text-center text-[11px] text-gray-500 font-bold">${r.total_record}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Filter pencarian ──────────────────────────────────────
+        function filterTable() {
+            sortAndRender();
+        }
+
+        // ── Sort ──────────────────────────────────────────────────
+        const SORT_KEYS = ['nama','total_alpa','total_lambat','total_sakit','total_izin','alpa_sholat','total_record'];
+
+        function setSort(key) {
+            if (sortState.key === key) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+            else { sortState.key = key; sortState.dir = key === 'nama' ? 'asc' : 'desc'; }
+            updateSortIcons();
+            sortAndRender();
+        }
+
+        function updateSortIcons() {
+            SORT_KEYS.forEach(k => {
+                const el = document.getElementById('si-' + k);
+                if (!el) return;
+                if (sortState.key === k) {
+                    el.className = 'fas ' + (sortState.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') + ' text-blue-500 text-[8px] block mt-0.5';
+                } else {
+                    el.className = 'fas fa-sort text-gray-300 text-[8px] block mt-0.5';
+                }
+            });
+            // nama tidak pakai 'block mt-0.5'
+            const siNama = document.getElementById('si-nama');
+            if (siNama) {
+                if (sortState.key === 'nama') {
+                    siNama.className = 'fas ' + (sortState.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') + ' text-blue-500 text-[8px]';
+                } else {
+                    siNama.className = 'fas fa-sort text-gray-300 text-[8px]';
+                }
+            }
+        }
+
+        // ── Modal detail ──────────────────────────────────────────
+        function openModal(idx) {
+            const q = (document.getElementById('tableSearch')?.value || '').toLowerCase();
+            const vis = q ? filtered.filter(r =>
+                r.nama.toLowerCase().includes(q) ||
+                r.kelas.toLowerCase().includes(q) ||
+                r.guru.toLowerCase().includes(q)
+            ) : filtered;
+            const r = vis[idx];
+            if (!r) return;
+
+            const alpaSholat = r.alpa_sholat ?? (r.alpa_zuhur + r.alpa_ashar);
+
+            document.getElementById('modalNama').textContent = r.nama;
+            document.getElementById('modalSub').textContent  = `${r.kelas} · Guru Wali: ${r.guru}`;
+
+            const rows = [
+                { label:'Alpa Hadir',        val: r.total_alpa,   color:'text-red-600',    bg:'bg-red-50',    icon:'fa-door-closed',     threshold: thresholds.alpa },
+                { label:'Terlambat',          val: r.total_lambat, color:'text-amber-600',  bg:'bg-amber-50',  icon:'fa-clock',           threshold: thresholds.lambat },
+                { label:'Sakit',              val: r.total_sakit,  color:'text-orange-500', bg:'bg-orange-50', icon:'fa-briefcase-medical',threshold: 9999 },
+                { label:'Izin',               val: r.total_izin,   color:'text-blue-500',   bg:'bg-blue-50',   icon:'fa-envelope',        threshold: 9999 },
+                { label:'Alpa Sholat (total)',val: alpaSholat,     color:'text-purple-600', bg:'bg-purple-50', icon:'fa-mosque',          threshold: thresholds.sholat },
+                { label:'— Alpa Zuhur',       val: r.alpa_zuhur,  color:'text-purple-500', bg:'bg-purple-50', icon:'fa-sun',             threshold: 9999 },
+                { label:'— Alpa Ashar',       val: r.alpa_ashar,  color:'text-purple-500', bg:'bg-purple-50', icon:'fa-cloud-sun',       threshold: 9999 },
+                { label:'Total Record Input', val: r.total_record, color:'text-gray-600',   bg:'bg-gray-50',   icon:'fa-database',        threshold: 9999 },
+            ];
+
+            document.getElementById('modalBody').innerHTML = rows.map(item => {
+                const isOver = item.val >= item.threshold && item.threshold < 9999;
+                return `<div class="flex items-center justify-between ${item.bg} rounded-xl px-4 py-2.5 ${isOver ? 'border border-red-200' : ''}">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fas ${item.icon} ${item.color} text-sm w-4 text-center"></i>
+                        <span class="text-xs font-bold text-gray-600">${item.label}</span>
+                        ${isOver ? '<span class="text-[9px] bg-red-100 text-red-600 font-black px-1.5 py-0.5 rounded-full">Melebihi batas</span>' : ''}
+                    </div>
+                    <span class="font-black text-base ${item.color}">${item.val}</span>
+                </div>`;
+            }).join('');
+
+            // Link laporan per guru
+            const from = document.getElementById('filterFrom').value;
+            const to   = document.getElementById('filterTo').value;
+            let lapUrl = `laporan.html?guru=${encodeURIComponent(r.guru)}`;
+            if (from) lapUrl += `&from=${from}`;
+            if (to)   lapUrl += `&to=${to}`;
+            document.getElementById('modalLaporanLink').href = lapUrl;
+
+            const modal = document.getElementById('modalDetail');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modalDetail');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('modalDetail').addEventListener('click', e => {
+            if (e.target === document.getElementById('modalDetail')) closeModal();
+        });
+
+        // ── Reset filter ──────────────────────────────────────────
+        function resetFilter() {
+            document.getElementById('filterFrom').value = firstDay.toISOString().slice(0, 10);
+            document.getElementById('filterTo').value   = today.toISOString().slice(0, 10);
+            document.getElementById('minAlpa').value   = 3;
+            document.getElementById('minLambat').value = 5;
+            document.getElementById('minSholat').value = 5;
+        }
+
+        // ── Helper ────────────────────────────────────────────────
+        function escHtml(s) {
+            return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        updateSortIcons();
+    </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 no-print md:hidden" style="box-shadow:0 -2px 12px rgba(0,0,0,0.06)">
+        <div class="max-w-5xl mx-auto flex">
+            <a href="index.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-blue-600 transition-colors">
+                <i class="fas fa-edit text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Form</span>
+            </a>
+            <a href="dashboard.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-emerald-600 transition-colors">
+                <i class="fas fa-th-large text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Dashboard</span>
+            </a>
+            <a href="laporan.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-purple-600 transition-colors">
+                <i class="fas fa-chart-bar text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Laporan</span>
+            </a>
+            <a href="siswa_kritis.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-red-500 relative">
+                <span class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-red-500 rounded-full"></span>
+                <i class="fas fa-exclamation-triangle text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Kritis</span>
+            </a>
+            <a href="rekap_guru.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-indigo-600 transition-colors">
+                <i class="fas fa-chalkboard-teacher text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Rekap Guru</span>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

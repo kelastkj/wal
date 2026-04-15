@@ -1,0 +1,18 @@
+# Izinkan akses eksplisit ke file PHP yang perlu diakses browser
+<FilesMatch "\.(php)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Blokir akses langsung ke file konfigurasi
+<FilesMatch "^config\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Nonaktifkan directory listing
+Options -Indexes
+
+# Sembunyikan header versi
+Header unset X-Powered-By
+Header always unset X-Powered-By

@@ -20,7 +20,7 @@
         .toast-out { animation: toastOut 0.4s ease forwards; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-16" style="font-family:'Plus Jakarta Sans',sans-serif">
+<body class="bg-slate-50 min-h-screen pb-20 md:pb-0" style="font-family:'Plus Jakarta Sans',sans-serif">
 
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] pointer-events-none hidden">
@@ -31,21 +31,18 @@
     </div>
 
     <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
-        <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
+        <div class="max-w-5xl mx-auto flex items-center gap-3">
             <h1 class="font-extrabold text-blue-700 tracking-tight text-lg leading-tight shrink-0">
                 Form Pembinaan
                 <span class="text-slate-400 font-medium block text-[10px] tracking-widest uppercase">Guru Wali · SMKN 2 Marabahan</span>
             </h1>
-            <div class="flex items-center gap-2">
-                <a href="dashboard.html" class="flex items-center gap-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 text-gray-500 text-[10px] font-black px-3 py-2 rounded-lg transition-all" title="Dashboard Guru">
-                    <i class="fas fa-th-large text-xs"></i>
-                    <span class="hidden sm:inline">Dashboard</span>
-                </a>
-                <a href="laporan.html" class="flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-gray-500 text-[10px] font-black px-3 py-2 rounded-lg transition-all" title="Lihat Laporan">
-                    <i class="fas fa-chart-bar text-xs"></i>
-                    <span class="hidden sm:inline">Laporan</span>
-                </a>
-            </div>
+            <nav class="hidden md:flex flex-1 justify-end items-center gap-1">
+                <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black rounded-lg bg-blue-600 text-white"><i class="fas fa-edit"></i> Form</a>
+                <a href="dashboard.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="laporan.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all"><i class="fas fa-chart-bar"></i> Laporan</a>
+                <a href="siswa_kritis.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 transition-all"><i class="fas fa-exclamation-triangle"></i> Kritis</a>
+                <a href="rekap_guru.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><i class="fas fa-chalkboard-teacher"></i> Rekap Guru</a>
+            </nav>
         </div>
     </header>
 
@@ -127,6 +124,8 @@
                         <div class="flex items-center gap-2 text-[10px] text-gray-600"><span class="w-5 h-5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-black flex items-center justify-center shrink-0">T</span> Tepat Waktu</div>
                         <div class="flex items-center gap-2 text-[10px] text-gray-600"><span class="w-5 h-5 bg-amber-100 text-amber-700 rounded text-[9px] font-black flex items-center justify-center shrink-0">L</span> Terlambat</div>
                         <div class="flex items-center gap-2 text-[10px] text-gray-600"><span class="w-5 h-5 bg-red-100 text-red-700 rounded text-[9px] font-black flex items-center justify-center shrink-0">A</span> Alpa</div>
+                        <div class="flex items-center gap-2 text-[10px] text-gray-600"><span class="w-5 h-5 bg-orange-100 text-orange-700 rounded text-[9px] font-black flex items-center justify-center shrink-0">S</span> Sakit</div>
+                        <div class="flex items-center gap-2 text-[10px] text-gray-600"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded text-[9px] font-black flex items-center justify-center shrink-0">I</span> Izin</div>
                     </div>
                 </div>
                 <div class="bg-white p-3 rounded-xl border shadow-sm">
@@ -197,7 +196,7 @@
                     </table>
                 </div>
                 <div class="p-4 bg-gray-50 border-t">
-                    <button onclick="saveData(this)" class="w-full bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-800 active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <button id="saveBtn" onclick="saveData(this)" class="w-full bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-800 active:scale-95 transition-all flex items-center justify-center gap-3">
                         <i class="fas fa-cloud-upload-alt"></i> SIMPAN DATA PEMBINAAN
                     </button>
                 </div>
@@ -206,7 +205,7 @@
     </main>
 
     <!-- Modal -->
-    <div id="modalStatus" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4">
+    <div id="modalStatus" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4 pb-[calc(1rem+4rem)] md:pb-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-5">
                 <div>
@@ -253,6 +252,84 @@
 
         setTglToday();
         let isSaving = false;
+        let isUpdate = false;
+
+        const SAVE_BTN_SIMPAN  = 'w-full bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-800 active:scale-95 transition-all flex items-center justify-center gap-3';
+        const SAVE_BTN_UPDATE  = 'w-full bg-amber-500 text-white font-black py-4 rounded-xl shadow-lg hover:bg-amber-600 active:scale-95 transition-all flex items-center justify-center gap-3';
+        const SAVE_BTN_LOADING = 'w-full bg-gray-400 text-white font-black py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 cursor-wait';
+
+        function getStatusClass(type, k) {
+            const map = {};
+            config[type].forEach(o => { map[o.k] = o.c; });
+            return map[k] || 'bg-gray-100 text-gray-500 border-gray-200';
+        }
+
+        function applyStatus(btn, type, k) {
+            btn.innerText = k;
+            btn.className = `w-10 h-8 rounded-lg text-[10px] font-bold border transition-all active:scale-90 ${getStatusClass(type, k)}`;
+        }
+
+        function setSaveBtn(mode) {
+            const btn = document.getElementById('saveBtn');
+            if (!btn) return;
+            if (mode === 'update') {
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> PERBARUI DATA PEMBINAAN';
+                btn.className = SAVE_BTN_UPDATE;
+            } else if (mode === 'loading') {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengecek data...';
+                btn.className = SAVE_BTN_LOADING;
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SIMPAN DATA PEMBINAAN';
+                btn.className = SAVE_BTN_SIMPAN;
+            }
+            if (mode !== 'loading') btn.disabled = false;
+        }
+
+        function loadExistingData() {
+            const guru    = document.getElementById('selectedGuru').value;
+            const tanggal = document.getElementById('tglInput').value;
+            if (!guru || !tanggal) return;
+
+            isUpdate = false;
+            setSaveBtn('loading');
+
+            fetch(`https://smkn1telagasari.sch.id/form-gw/api/report.php?from=${tanggal}&to=${tanggal}&guru=${encodeURIComponent(guru)}`)
+                .then(r => r.json())
+                .then(res => {
+                    const rows = (res.data || []).filter(r => r.guru.trim() === guru.trim());
+                    if (rows.length === 0) {
+                        isUpdate = false;
+                        setSaveBtn('simpan');
+                        return;
+                    }
+
+                    // Map by nama (case-insensitive, trim)
+                    const dataMap = {};
+                    rows.forEach(r => { dataMap[r.nama.trim().toUpperCase()] = r; });
+
+                    const isMingguan = !document.getElementById('thMingguan').classList.contains('hidden');
+                    const isTambahan = document.getElementById('toggleTambahan').checked;
+
+                    document.querySelectorAll('#siswaTableBody tr').forEach(tr => {
+                        const d = dataMap[tr.dataset.nama.trim().toUpperCase()];
+                        if (!d) return;
+                        const cells = tr.querySelectorAll('button');
+                        if (d.absen    && d.absen    !== '-') applyStatus(cells[0], 'absen',    d.absen);
+                        if (d.zuhur    && d.zuhur    !== '-') applyStatus(cells[1], 'sholat',   d.zuhur);
+                        if (d.ashar    && d.ashar    !== '-') applyStatus(cells[2], 'sholat',   d.ashar);
+                        if (isMingguan && cells[3] && d.mingguan && d.mingguan !== '-') applyStatus(cells[3], 'mingguan', d.mingguan);
+                        if (isTambahan && cells[4] && d.tambahan && d.tambahan !== '-') applyStatus(cells[4], 'sholat',   d.tambahan);
+                    });
+
+                    isUpdate = true;
+                    setSaveBtn('update');
+                })
+                .catch(() => {
+                    isUpdate = false;
+                    setSaveBtn('simpan');
+                });
+        }
 
         window.addEventListener('beforeunload', function(e) {
             if (isSaving) {
@@ -352,7 +429,9 @@
             absen: [
                 {k: 'T', n: 'Tepat Waktu', c: 'bg-emerald-100 text-emerald-700 border-emerald-200'},
                 {k: 'L', n: 'Terlambat',   c: 'bg-amber-100 text-amber-700 border-amber-200'},
-                {k: 'A', n: 'Alpa',         c: 'bg-red-100 text-red-700 border-red-200'}
+                {k: 'A', n: 'Alpa',        c: 'bg-red-100 text-red-700 border-red-200'},
+                {k: 'S', n: 'Sakit',       c: 'bg-orange-100 text-orange-700 border-orange-200'},
+                {k: 'I', n: 'Izin',        c: 'bg-blue-100 text-blue-700 border-blue-200'}
             ],
             sholat: [
                 {k: 'H',    n: 'Hadir', c: 'bg-emerald-100 text-emerald-700 border-emerald-200'},
@@ -424,6 +503,8 @@
                 document.getElementById('legendChevron').style.transform = 'rotate(180deg)';
                 localStorage.setItem('legendSeen', '1');
             }
+
+            loadExistingData();
         }
 
         function openModal(el, type) {
@@ -446,8 +527,27 @@
         function setStatus(k, c) {
             currentTarget.innerText = k;
             currentTarget.className = `w-10 h-8 rounded-lg text-[10px] font-bold border transition-all active:scale-90 ${c}`;
-            // Tandai baris sudah diubah
+
+            // Auto-fill kolom lain jika yang diubah adalah kolom Absen
             const tr = currentTarget.closest('tr');
+            const cells = tr ? tr.querySelectorAll('button') : [];
+            if (cells.length > 0 && currentTarget === cells[0]) {
+                // A=Alpa, S=Sakit, I=Izin → isi otomatis Zuhur, Ashar, Mingguan
+                const autoFill = {
+                    'A': { sholat: 'A', mingguan: 'T' },
+                    'S': { sholat: 'S', mingguan: 'I' },
+                    'I': { sholat: 'I', mingguan: 'I' },
+                };
+                const fill = autoFill[k];
+                if (fill) {
+                    const isMingguan = !document.getElementById('thMingguan').classList.contains('hidden');
+                    if (cells[1]) applyStatus(cells[1], 'sholat', fill.sholat);
+                    if (cells[2]) applyStatus(cells[2], 'sholat', fill.sholat);
+                    if (isMingguan && cells[3]) applyStatus(cells[3], 'mingguan', fill.mingguan);
+                }
+            }
+
+            // Tandai baris sudah diubah
             if (tr && !tr.dataset.changed) {
                 tr.dataset.changed = '1';
                 const namaTd = tr.querySelector('td:nth-child(2) div:first-child');
@@ -496,10 +596,10 @@
                 return;
             }
 
-            const originalText = btn.innerHTML;
-
+            const wasUpdate = isUpdate;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+            btn.className = SAVE_BTN_LOADING;
             isSaving = true;
 
             const rows = document.querySelectorAll('#siswaTableBody tr');
@@ -526,14 +626,15 @@
                 responses: allData
             };
 
-            fetch('https://script.google.com/macros/s/AKfycbxmLhmcE4di_21eVPAUVQ7M8f0f_cbpJHDGY-2nEE-SbJgnEHA6uMgS-tW5e-QFMIdH/exec', {
+            fetch('https://smkn1telagasari.sch.id/form-gw/api/save.php', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
-                    showToast('Data berhasil disimpan ke Spreadsheet!');
+                    isUpdate = true;
+                    showToast(wasUpdate ? 'Data berhasil diperbarui!' : 'Data berhasil disimpan!');
                 } else {
                     showToast('Gagal menyimpan data', true);
                 }
@@ -544,10 +645,36 @@
             })
             .finally(() => {
                 isSaving = false;
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                setSaveBtn(isUpdate ? 'update' : 'simpan');
             });
         }
     </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 md:hidden" style="box-shadow:0 -2px 12px rgba(0,0,0,0.06)">
+        <div class="max-w-5xl mx-auto flex">
+            <a href="index.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-blue-600 relative">
+                <span class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-full"></span>
+                <i class="fas fa-edit text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Form</span>
+            </a>
+            <a href="dashboard.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-emerald-600 transition-colors">
+                <i class="fas fa-th-large text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Dashboard</span>
+            </a>
+            <a href="laporan.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-purple-600 transition-colors">
+                <i class="fas fa-chart-bar text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Laporan</span>
+            </a>
+            <a href="siswa_kritis.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-exclamation-triangle text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Kritis</span>
+            </a>
+            <a href="rekap_guru.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-indigo-600 transition-colors">
+                <i class="fas fa-chalkboard-teacher text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Rekap Guru</span>
+            </a>
+        </div>
+    </nav>
 </body>
 </html>
