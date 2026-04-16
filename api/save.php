@@ -47,7 +47,7 @@ if (strlen($guruNama) > 200 || count($responses) > 50) {
 // Nilai yang diizinkan untuk setiap kolom
 $allowAbsen    = ['H', 'T', 'L', 'A', 'S', 'I', '-'];
 $allowZuhurAsr = ['H', 'S', 'I', 'A', 'Haid', '-'];
-$allowMingguan = ['H', 'T', 'I', '-'];
+$allowMingguan = ['H', 'T', 'X', 'I', '-'];
 
 try {
     $pdo = getDB();

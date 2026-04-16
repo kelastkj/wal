@@ -139,7 +139,7 @@ echo '<div class="box"><h3>Langkah 3 — Menyimpan ke MySQL…</h3>';
 
 $allowAbsen    = ['H', 'T', 'L', 'A', 'S', 'I', '-'];
 $allowZuhurAsr = ['H', 'S', 'I', 'A', 'Haid', '-'];
-$allowMingguan = ['H', 'T', 'I', '-'];
+$allowMingguan = ['H', 'T', 'X', 'I', '-'];
 
 try {
     $pdo = getDB();

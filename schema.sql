@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS pembinaan_detail (
     absen        CHAR(1)      NOT NULL DEFAULT 'H' COMMENT 'H=Hadir T=Tepat L=Terlambat A=Alpa S=Sakit I=Izin',
     zuhur        VARCHAR(5)   NOT NULL DEFAULT 'H' COMMENT 'H=Hadir S=Sakit I=Izin A=Alpa Haid=Haid',
     ashar        VARCHAR(5)   NOT NULL DEFAULT 'H' COMMENT 'H=Hadir S=Sakit I=Izin A=Alpa Haid=Haid',
-    mingguan     VARCHAR(5)   NOT NULL DEFAULT '-' COMMENT 'H/T/I untuk Upacara-Olga, - jika tidak ada',
+    mingguan     VARCHAR(5)   NOT NULL DEFAULT '-' COMMENT 'H/X/I untuk Upacara-Olga (X=Tidak Hadir), - jika tidak ada',
     tambahan     VARCHAR(500) NOT NULL DEFAULT '',
     UNIQUE KEY uq_pem_siswa (pembinaan_id, siswa_id),
     KEY idx_siswa (siswa_id),
