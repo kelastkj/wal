@@ -42,6 +42,7 @@
                 <a href="laporan.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all"><i class="fas fa-chart-bar"></i> Laporan</a>
                 <a href="siswa_kritis.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 transition-all"><i class="fas fa-exclamation-triangle"></i> Kritis</a>
                 <a href="rekap_guru.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><i class="fas fa-chalkboard-teacher"></i> Rekap Guru</a>
+                <a href="rekap_bulanan.html" class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-500 hover:text-teal-600 hover:bg-teal-50 transition-all"><i class="fas fa-calendar-alt"></i> Rekap Bulanan</a>
             </nav>
         </div>
     </header>
@@ -312,15 +313,26 @@
                         return;
                     }
 
-                    // Map by nama (case-insensitive, trim)
-                    const dataMap = {};
-                    rows.forEach(r => { dataMap[r.nama.trim().toUpperCase()] = r; });
+                    // Map by NISN (primary) dan nama|kelas (fallback)
+                    const dataMapNisn = {};
+                    const dataMapName = {};
+                    rows.forEach(r => {
+                        if (r.nisn && r.nisn.trim() !== '') {
+                            dataMapNisn[r.nisn.trim()] = r;
+                        }
+                        // key: nama|kelas — kalau nama duplikat, simpan array supaya tidak overwrite
+                        const nk = r.nama.trim().toUpperCase() + '|' + (r.kelas || '').trim().toUpperCase();
+                        if (!dataMapName[nk]) dataMapName[nk] = r;
+                    });
 
                     const isMingguan = !document.getElementById('thMingguan').classList.contains('hidden');
                     const isTambahan = document.getElementById('toggleTambahan').checked;
 
                     document.querySelectorAll('#siswaTableBody tr').forEach(tr => {
-                        const d = dataMap[tr.dataset.nama.trim().toUpperCase()];
+                        // Prioritas: NISN → nama+kelas
+                        const trNisn = (tr.dataset.nisn || '').trim();
+                        const trNK   = tr.dataset.nama.trim().toUpperCase() + '|' + (tr.dataset.kelas || '').trim().toUpperCase();
+                        const d = (trNisn && dataMapNisn[trNisn]) ? dataMapNisn[trNisn] : dataMapName[trNK];
                         if (!d) return;
                         const cells = tr.querySelectorAll('button');
                         if (d.absen    && d.absen    !== '-') applyStatus(cells[0], 'absen',    d.absen);
@@ -664,7 +676,7 @@
     </script>
 
     <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 md:hidden" style="box-shadow:0 -2px 12px rgba(0,0,0,0.06)">
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 no-print md:hidden" style="box-shadow:0 -2px 12px rgba(0,0,0,0.06)">
         <div class="max-w-5xl mx-auto flex">
             <a href="index.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-blue-600 relative">
                 <span class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-full"></span>
@@ -686,6 +698,10 @@
             <a href="rekap_guru.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-indigo-600 transition-colors">
                 <i class="fas fa-chalkboard-teacher text-base"></i>
                 <span class="text-[8px] font-black uppercase tracking-wider">Rekap Guru</span>
+            </a>
+            <a href="rekap_bulanan.html" class="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-gray-400 hover:text-teal-600 transition-colors">
+                <i class="fas fa-calendar-alt text-base"></i>
+                <span class="text-[8px] font-black uppercase tracking-wider">Bulanan</span>
             </a>
         </div>
     </nav>

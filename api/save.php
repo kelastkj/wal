@@ -78,7 +78,7 @@ try {
         'SELECT id FROM siswa WHERE nisn = ? AND guru_wali_id = ? LIMIT 1'
     );
     $stmtFindName = $pdo->prepare(
-        'SELECT id FROM siswa WHERE nama = ? AND kelas = ? AND guru_wali_id = ? LIMIT 1'
+        'SELECT id, nisn FROM siswa WHERE nama = ? AND kelas = ? AND guru_wali_id = ?'
     );
     $stmtInsertSiswa = $pdo->prepare(
         'INSERT INTO siswa (nisn, nama, kelas, guru_wali_id) VALUES (?, ?, ?, ?)'
@@ -104,15 +104,31 @@ try {
 
         if ($nama === '') continue;
 
-        // Cari siswa_id — prioritas: NISN, fallback: nama+kelas
+        // Cari siswa_id — prioritas: NISN, fallback: nama+kelas+nisn_null, last resort: nama+kelas LIMIT 1
         $siswaId = null;
         if ($nisn !== '') {
             $stmtFindNisn->execute([$nisn, $guruId]);
             $siswaId = $stmtFindNisn->fetchColumn() ?: null;
         }
         if (!$siswaId) {
+            // Fallback: nama+kelas — ambil yang NISN-nya sama atau NULL dulu
             $stmtFindName->execute([$nama, $kelas, $guruId]);
-            $siswaId = $stmtFindName->fetchColumn() ?: null;
+            $rows = $stmtFindName->fetchAll(PDO::FETCH_ASSOC);
+            if (count($rows) === 1) {
+                $siswaId = $rows[0]['id'];
+            } elseif (count($rows) > 1) {
+                // Nama duplikat di kelas yang sama: cari yang NISN-nya cocok, atau yang NISN NULL
+                foreach ($rows as $sr) {
+                    if ($nisn !== '' && $sr['nisn'] === $nisn) { $siswaId = $sr['id']; break; }
+                }
+                if (!$siswaId) {
+                    foreach ($rows as $sr) {
+                        if (empty($sr['nisn'])) { $siswaId = $sr['id']; break; }
+                    }
+                }
+                // Jika masih belum ketemu, ambil baris pertama (last resort)
+                if (!$siswaId) $siswaId = $rows[0]['id'];
+            }
         }
         if (!$siswaId) {
             // Siswa belum ada di DB — insert otomatis
