@@ -191,10 +191,10 @@
                                 <th class="p-3 text-center">
                                     <i class="fas fa-user-check block text-gray-300 mb-0.5"></i>Absen
                                 </th>
-                                <th class="p-3 text-center">
+                                <th id="thZuhur" class="p-3 text-center">
                                     <i class="fas fa-mosque block text-gray-300 mb-0.5"></i>Zuhur
                                 </th>
-                                <th class="p-3 text-center">
+                                <th id="thAshar" class="p-3 text-center">
                                     <i class="fas fa-mosque block text-gray-300 mb-0.5"></i>Ashar
                                 </th>
                                 <th id="thMingguan" class="p-3 text-center hidden bg-blue-50 text-blue-600">Mingguan</th>
@@ -310,6 +310,8 @@
                     if (rows.length === 0) {
                         isUpdate = false;
                         setSaveBtn('simpan');
+                        // Sesi baru: cari sesi terakhir yang ada sholat untuk carry-forward Haid
+                        prefillHaidFromLastSession(guru, tanggal);
                         return;
                     }
 
@@ -335,9 +337,9 @@
                         const d = (trNisn && dataMapNisn[trNisn]) ? dataMapNisn[trNisn] : dataMapName[trNK];
                         if (!d) return;
                         const cells = tr.querySelectorAll('button');
-                        if (d.absen    && d.absen    !== '-') applyStatus(cells[0], 'absen',    d.absen);
-                        if (d.zuhur    && d.zuhur    !== '-') applyStatus(cells[1], 'sholat',   d.zuhur);
-                        if (d.ashar    && d.ashar    !== '-') applyStatus(cells[2], 'sholat',   d.ashar);
+                        if (d.absen && d.absen !== '-') applyStatus(cells[0], 'absen',  d.absen);
+                        if (d.zuhur && d.zuhur !== '-') applyStatus(cells[1], 'sholat', d.zuhur);
+                        if (d.ashar && d.ashar !== '-') applyStatus(cells[2], 'sholat', d.ashar);
                         if (isMingguan && cells[3] && d.mingguan && d.mingguan !== '-') applyStatus(cells[3], 'mingguan', d.mingguan === 'T' ? 'X' : d.mingguan);
                         if (isTambahan && cells[4] && d.tambahan && d.tambahan !== '-') applyStatus(cells[4], 'sholat',   d.tambahan);
                     });
@@ -357,6 +359,65 @@
                 e.returnValue = 'Data sedang disimpan, jangan tutup halaman ini.';
             }
         });
+
+        // Carry-forward Haid: cari sesi terakhir (non-Jumat) yang punya data sholat,
+        // lalu pre-fill Haid untuk siswa yang Haid di sesi tersebut.
+        function prefillHaidFromLastSession(guru, tanggal) {
+            const d = new Date(tanggal + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            const to   = d.toISOString().slice(0, 10);
+            d.setDate(d.getDate() - 59);
+            const from = d.toISOString().slice(0, 10);
+
+            fetch(`https://smkn1telagasari.sch.id/form-gw/api/report.php?from=${from}&to=${to}&guru=${encodeURIComponent(guru)}`)
+                .then(r => r.json())
+                .then(res => {
+                    const prevRows = (res.data || []).filter(r => r.guru && r.guru.trim() === guru.trim());
+                    if (!prevRows.length) return;
+
+                    // Normalisasi: anggap null/undefined sebagai '-'
+                    const val = v => (v == null ? '-' : String(v).trim()) || '-';
+
+                    // Urutkan tanggal DESC, cari tanggal terakhir yang punya sholat nyata (bukan semua '-'/null)
+                    const dates = [...new Set(prevRows.map(r => r.tanggal))].sort().reverse();
+                    let lastDate = null;
+                    for (const dt of dates) {
+                        const dtRows = prevRows.filter(r => r.tanggal === dt);
+                        if (dtRows.some(r => val(r.zuhur) !== '-' || val(r.ashar) !== '-')) {
+                            lastDate = dt;
+                            break;
+                        }
+                    }
+                    if (!lastDate) return;
+
+                    // Kumpulkan siswa yang Haid di sesi terakhir itu
+                    const haidSet = new Set();
+                    prevRows.filter(r => r.tanggal === lastDate).forEach(r => {
+                        if (val(r.zuhur) !== 'Haid' && val(r.ashar) !== 'Haid') return;
+                        const nisn = (r.nisn || '').trim();
+                        // Hanya pakai NISN jika valid (bukan string "null"/"undefined")
+                        if (nisn && nisn !== 'null' && nisn !== 'undefined') {
+                            haidSet.add('nisn:' + nisn);
+                        }
+                        haidSet.add('nk:' + r.nama.trim().toUpperCase() + '|' + (r.kelas || '').trim().toUpperCase());
+                    });
+                    if (!haidSet.size) return;
+
+                    // Pre-fill Haid ke baris siswa yang cocok
+                    document.querySelectorAll('#siswaTableBody tr').forEach(tr => {
+                        const trNisn = (tr.dataset.nisn || '').trim();
+                        const trNK   = 'nk:' + tr.dataset.nama.trim().toUpperCase() + '|' + (tr.dataset.kelas || '').trim().toUpperCase();
+                        // Hanya pakai NISN jika valid
+                        const validNisn = trNisn && trNisn !== 'null' && trNisn !== 'undefined';
+                        const isHaid = (validNisn && haidSet.has('nisn:' + trNisn)) || haidSet.has(trNK);
+                        if (!isHaid) return;
+                        const cells = tr.querySelectorAll('button');
+                        if (cells[1]) applyStatus(cells[1], 'sholat', 'Haid');
+                        if (cells[2]) applyStatus(cells[2], 'sholat', 'Haid');
+                    });
+                })
+                .catch(err => console.error('[prefillHaid]', err));
+        }
 
         fetch('data_siswa.json')
             .then(r => r.json())
@@ -481,6 +542,9 @@
 
             thMingguan.classList.add('hidden');
             thTambahan.classList.add('hidden');
+
+            document.getElementById('thZuhur').classList.remove('hidden');
+            document.getElementById('thAshar').classList.remove('hidden');
 
             let labelMingguan = "";
             if (hari === 1) { labelMingguan = "UPACARA"; thMingguan.classList.remove('hidden'); }

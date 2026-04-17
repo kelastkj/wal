@@ -41,7 +41,8 @@ try {
                     WHERE p2.guru_wali_id = g.id
                       AND (pd2.zuhur = \'Haid\' OR pd2.ashar = \'Haid\')
                       AND p2.tanggal = (
-                          SELECT MAX(tanggal) FROM pembinaan WHERE guru_wali_id = g.id
+                          SELECT MAX(tanggal) FROM pembinaan
+                          WHERE guru_wali_id = g.id
                       )
                 ) AS haid_last
             FROM guru_wali g

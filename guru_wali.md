@@ -84,6 +84,150 @@ Saat ini guru wali hanya diinput sebagai nama teks bebas. Perlu:
 
 ---
 
+## Rencana Teknis: Dimensi Pembinaan
+
+Berdasarkan Pasal 9 ayat 2, sesi pembinaan harus mencakup minimal 4 dimensi:
+**Akademik · Kompetensi · Keterampilan · Karakter**
+
+Saat ini kolom yang tersedia di `pembinaan_detail` hanya `tambahan VARCHAR(500)` yang tidak terstruktur.
+Berikut rencana implementasi bertahap:
+
+---
+
+### Tahap 1 — Perubahan Database Schema
+
+Tambahkan kolom baru di tabel `pembinaan_detail`:
+
+```sql
+ALTER TABLE pembinaan_detail
+    ADD COLUMN dim_akademik   TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1=dibahas sesi ini',
+    ADD COLUMN dim_kompetensi TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN dim_keterampilan TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN dim_karakter   TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN catatan_akademik VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'catatan khusus per siswa per sesi';
+```
+
+Kolom `tambahan` yang ada tetap dipertahankan (tidak di-drop) agar data lama tidak hilang.
+`catatan_akademik` menggantikan peran `tambahan` secara bertahap.
+
+---
+
+### Tahap 2 — UI di `index.html`
+
+Mekanisme serupa toggle **Kegiatan Tambahan** yang sudah ada (`#toggleTambahan`).
+
+**Tambah toggle baru di panel kontrol:**
+```
+[ ] Dimensi Pembinaan
+```
+Jika dicentang → muncul panel di atas tabel (bukan kolom per siswa) berisi 4 checkbox sesi:
+
+```
+Sesi ini membahas:
+[✓] Akademik   [ ] Kompetensi   [ ] Keterampilan   [✓] Karakter
+```
+
+Ini adalah **dimensi per sesi** (1 sesi = 1 kombinasi dimensi yang sama untuk semua siswa).
+Disimpan ke tabel `pembinaan` (level sesi), bukan `pembinaan_detail` (level siswa).
+
+Untuk itu tambahkan kolom di `pembinaan`:
+```sql
+ALTER TABLE pembinaan
+    ADD COLUMN dim_akademik     TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN dim_kompetensi   TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN dim_keterampilan TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN dim_karakter     TINYINT(1) NOT NULL DEFAULT 0,
+    ADD COLUMN tema_sesi        VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'tema/topik sesi pembinaan';
+```
+
+**Catatan per siswa** (opsional, jika ada siswa yang butuh catatan khusus):
+Kolom `catatan_akademik` di `pembinaan_detail` diisi via modal yang sudah ada (`#modalStatus`).
+Tambahkan field teks di modal:
+```
+[Catatan untuk siswa ini (opsional)________________]
+```
+
+---
+
+### Tahap 3 — Perubahan `save.php`
+
+Tambah field baru ke body JSON yang diterima:
+```json
+{
+  "tanggal": "2026-04-16",
+  "guru": "Nama Guru",
+  "dimensi": {
+    "akademik": true,
+    "kompetensi": false,
+    "keterampilan": false,
+    "karakter": true,
+    "tema": "Persiapan UAS"
+  },
+  "responses": [
+    { "nama": "...", "catatan_akademik": "Nilai matematika turun" }
+  ]
+}
+```
+
+Validasi di `save.php`:
+```php
+$dimAkademik    = !empty($body['dimensi']['akademik'])    ? 1 : 0;
+$dimKompetensi  = !empty($body['dimensi']['kompetensi'])  ? 1 : 0;
+$dimKeterampilan= !empty($body['dimensi']['keterampilan'])? 1 : 0;
+$dimKarakter    = !empty($body['dimensi']['karakter'])    ? 1 : 0;
+$temaSesi       = substr(trim($body['dimensi']['tema'] ?? ''), 0, 200);
+```
+
+Update upsert `pembinaan` menyertakan kolom dimensi.
+Per siswa: tambahkan `catatan_akademik` ke `$stmtDetail`.
+
+---
+
+### Tahap 4 — Perubahan `report.php`
+
+**MODE 2** (laporan per guru) — tambahkan field ke SELECT:
+```sql
+p.dim_akademik, p.dim_kompetensi, p.dim_keterampilan, p.dim_karakter, p.tema_sesi,
+pd.catatan_akademik
+```
+
+**MODE baru (MODE 5) — Rekap Dimensi per Guru:**
+```
+GET /api/report.php?dimensi=1&guru=NamaGuru&from=...&to=...
+```
+Response: berapa sesi membahas akademik, kompetensi, keterampilan, karakter dalam rentang waktu.
+Berguna untuk laporan kepala sekolah.
+
+---
+
+### Tahap 5 — Tampilan di Halaman Laporan & Rekap Bulanan
+
+**`laporan.html`** — tambahkan di baris per sesi:
+- Ikon dimensi kecil: `📚 A  🔧 K  ⚡ Ktr  💎 Kar` (yang dicentang tampil berwarna, yang tidak abu)
+- Tema sesi tampil sebagai subtitle di header per sesi
+
+**`rekap_bulanan.html`** — tambahkan baris footer per tanggal:
+- Baris dimensi: icon A/K/Ktr/Kar yang aktif per kolom tanggal
+
+**Halaman baru `dimensi_rekap.html`** (jangka panjang):
+- Bar chart: distribusi dimensi per bulan/per guru
+- "Bulan ini: 80% sesi bahas Akademik, 40% Karakter, 20% Kompetensi"
+
+---
+
+### Ringkasan Perubahan File
+
+| File | Perubahan |
+|---|---|
+| `schema.sql` | `ALTER TABLE pembinaan` + `ALTER TABLE pembinaan_detail` |
+| `api/save.php` | Terima & simpan field `dimensi` dan `catatan_akademik` |
+| `api/report.php` | MODE 2 tambah kolom dimensi; tambah MODE 5 rekap dimensi |
+| `index.html` | Toggle + panel checkbox dimensi sesi; field catatan di modal |
+| `laporan.html` | Tampilkan ikon dimensi per sesi |
+| `rekap_bulanan.html` | Baris dimensi aktif per kolom tanggal |
+
+---
+
 ## Prioritas Pengembangan (Usulan)
 
 | Prioritas | Fitur | Kompleksitas |
